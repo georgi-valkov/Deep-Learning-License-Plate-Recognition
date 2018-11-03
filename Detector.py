@@ -1,11 +1,4 @@
 import numpy as np
-import os
-import sys
-import time
-import cv2
-import base64
-
-from PIL import ImageFont, ImageDraw, Image
 import tensorflow as tf
 from utils import label_map_util
 from utils import visualization_utils as vis_util
@@ -56,6 +49,7 @@ class Detector():
             np.squeeze(scores),
             self.category_index,
             use_normalized_coordinates=True,
-            line_thickness=-1)
+            line_thickness=5)
 
-        return frame, scores
+        return frame, scores, num_detections, boxes
+
