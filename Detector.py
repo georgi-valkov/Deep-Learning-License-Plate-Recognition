@@ -59,20 +59,3 @@ class Detector():
             line_thickness=-1)
 
         return frame, scores
-
-# if __name__=='__main__':
-#
-#     d1 = Detector(graph='models/lp_detection_graph.pb', labels='license_plate_label_map.pbtxt')
-#
-#     stream = cv2.VideoCapture('/home/valkov/Desktop/Video/rob/done/20181024_163259.mp4')
-#     while True:
-#         ret, frame = stream.read()
-#         if ret:
-#             frame, scores = d1.detect(frame)
-#
-#             cv2.imshow('frame', frame)
-#
-#         if cv2.waitKey(1) & 0xFF == ord('q'):
-#             break
-#     stream.release()
-#     cv2.destroyAllWindows()
