@@ -1,0 +1,159 @@
+#:kivy 1.10.1
+
+
+<SButton>:
+    #background_normal: 'bu.png'
+
+
+<LeftSide@GridLayout>:
+    cols: 1
+    rows: 3
+
+<RightSide@GridLayout>:
+    cols: 1
+    rows: 3
+    size_hint_x: 1.5
+
+<Video@Image>:
+    size_hint_y: 0.75
+
+<SettingsBar@StackLayout>:
+    size_hint_y: 0.05
+    spacing: 5
+    padding: [350, 0, 250, 0]
+
+
+<SettingsButton@Button>:
+    size_hint: (None, None)
+    width: 30
+    height: 30
+
+<ImageSettingsButtons@Image>:
+    size: self.parent.size
+    pos: self.parent.pos
+
+<MainButton@Button>:
+
+<SeparatorH@Widget>:
+    size_hint_y: None
+    thickness: 2
+    margin: 2
+    height: self.thickness + 2 * self.margin
+    color: 1., .0, .0
+    canvas:
+        Color:
+            rgb: self.color
+        Rectangle:
+            pos: self.parent.x + self.margin, self.y + self.margin + 1
+            size: self.parent.width - 2 * self.margin , self.thickness
+
+<Record@BoxLayout>:
+    #spacing: 5
+    orientation: 'horizontal'
+    CheckBox:
+        id: ch_box
+        size: (5, 5)
+        on_active: self.parent.if_active()
+    Image:
+        id: lp_image
+        size: (150, 350)
+    Label:
+        id: predicted_text
+    Label:
+        id: time
+    Label:
+        id: coordinates
+
+
+<DataGrid@GridLayout>:
+    cols: 1
+    spacing: 5
+    row_default_height: '150dp'
+    #row_force_default: True
+    size_hint_y: None
+    height: self.minimum_height
+
+<MainScreen>:
+# Changes background color
+    canvas:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    BoxLayout:
+        padding: [10, 10, 10, 10]
+        spacing: 20
+
+        # Left side of the app
+        LeftSide:
+            Video:
+                id: video
+                texture: root.my_capture.texture
+            SettingsBar:
+                SettingsButton:
+                    ImageSettingsButtons:
+                        source: 'icons/set.png'
+                SettingsButton:
+                    ImageSettingsButtons:
+                        source: 'icons/db.png'
+                SettingsButton:
+                    ImageSettingsButtons:
+                        source: 'icons/vid.png'
+                SettingsButton:
+                    ImageSettingsButtons:
+                        source: 'icons/cam.png'
+            BoxLayout:
+                size_hint_y: 0.2
+                spacing: 20
+                padding: [20, 20, 20, 20]
+                MainButton:
+                    text: 'Start'
+                    on_press: app.on_press()
+                MainButton:
+                    text: 'Button 2'
+                MainButton:
+                    text: 'Button 3'
+
+
+
+
+        # Right side of the app
+        RightSide:
+            BoxLayout:
+                size_hint_y: 0.05
+                padding: [0, 0, 0, 50]
+                orientation: 'horizontal'
+                Widget:
+                Label:
+                    size_hint_y: 0.5
+                    text: 'License Plate Image'
+                Label:
+                    size_hint_y: 0.2
+                    text:'Predicted Text'
+                Label:
+                    size_hint_y: 0.1
+                    text: 'Time'
+                Label:
+                    size_hint_y: 0.2
+                    text: 'Coordinates'
+
+            ScrollView:
+                id: scroll
+                size_hint_y: 0.75
+                size: self.size
+                do_scroll_y: True
+                bar_width: 4
+                DataGrid:
+                    id: data_grid
+
+
+            SButton:
+                size_hint_y: 0.2
+                text: 'Legend'
+
+
+
+
+
+
