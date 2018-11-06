@@ -8,7 +8,7 @@ class Reader():
         self.graph = self.__load_graph(graph)
         self.config = tf.ConfigProto(allow_soft_placement=True)
         self.session = tf.Session(graph=self.graph, config=self.config)
-
+        self.processed_set = set()
 
     def __load_graph(self, path_to_frozen_graph):
         # Load a (frozen) Tensorflow model into memory.
@@ -41,3 +41,12 @@ class Reader():
         })
 
         return prediction_out, probability_out
+
+
+    # Cheks if number has been read and adds it to the set of processed if it wasn't
+    def processed(self, lp_number):
+        if lp_number in self.processed_set:
+            return True
+        else:
+            self.processed_set.add(lp_number)
+            return False
