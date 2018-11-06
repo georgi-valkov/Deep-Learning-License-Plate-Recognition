@@ -40,7 +40,7 @@ class Reader():
             x: image
         })
 
-        return prediction_out, probability_out
+        return prediction_out.decode('utf-8'), probability_out
 
 
     # Cheks if number has been read and adds it to the set of processed if it wasn't

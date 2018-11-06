@@ -55,12 +55,11 @@ class KivyCapture(Image):
                     lp_np = frame[ymin:ymax, xmin:xmax]
                     # Read text from license plate image
                     prediction, probability = self.reader.read(lp_np)
-                    if probability > 0.95 and not self.reader.processed(prediction.decode('utf-8')):
+                    if probability > 0.95 and not self.reader.processed(prediction):
                         lp_buf1 = cv2.flip(lp_np, 0)
                         lp_buf = lp_buf1.tostring()
                         lp_image_texture = Texture.create(size=(lp_np.shape[1], lp_np.shape[0]), colorfmt='bgr')
                         lp_image_texture.blit_buffer(lp_buf, colorfmt='bgr', bufferfmt='ubyte')
-                        prediction = prediction.decode('utf-8')
                         # display image from the texture
                         record = Record()
                         record.update(image_texture=lp_image_texture, predicted_text=prediction,
