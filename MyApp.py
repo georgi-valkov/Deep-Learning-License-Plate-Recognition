@@ -29,6 +29,9 @@ class KivyCapture(Image):
     def start(self):
         Clock.schedule_interval(self.update, 1.0 / self.fps)
 
+    def pause(self):
+        Clock.unschedule(self.update)
+
     def update(self, dt):
 
         ret, frame = self.capture.read()
@@ -113,9 +116,17 @@ class MyApp(App):
 
         return self.main_screen
 
-    def on_press(self):
+    def on_press_start(self):
         self.main_screen.my_capture.set_parent(self.main_screen)
         self.main_screen.my_capture.start()
+        self.main_screen.ids.start_button.disabled = True
+        self.main_screen.ids.pause_button.disabled = False
+
+    def on_press_pause(self):
+        self.main_screen.my_capture.pause()
+        self.main_screen.ids.start_button.disabled = False
+        self.main_screen.ids.pause_button.disabled = True
+
 
     def on_stop(self):
         #without this, app will not exit even if the window is closed

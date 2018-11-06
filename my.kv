@@ -108,12 +108,16 @@
                 spacing: 20
                 padding: [20, 20, 20, 20]
                 MainButton:
+                    id: start_button
                     text: 'Start'
-                    on_press: app.on_press()
+                    on_press: app.on_press_start()
                 MainButton:
                     text: 'Button 2'
                 MainButton:
-                    text: 'Button 3'
+                    id: pause_button
+                    text: 'Pause'
+                    on_press: app.on_press_pause()
+                    disabled: True
 
 
 
