@@ -125,7 +125,7 @@ class MyApp(App):
         if video.parent is not self.main_screen:
             video.set_parent(self.main_screen)
         if video.running is '': # First time
-            video.capture = cv2.VideoCapture('/home/valkov/Desktop/Video/rob/done/20181024_163259.mp4')
+            video.capture = cv2.VideoCapture('c:/vids/GOPR0396.MP4')
             video.start()
             video.running = 'running'
         else:
