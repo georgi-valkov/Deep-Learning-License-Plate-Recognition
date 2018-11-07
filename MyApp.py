@@ -153,7 +153,7 @@ class MyApp(App):
 
     def on_stop(self):
         #without this, app will not exit even if the window is closed
-        self.main_screen.capture.release()
+        self.main_screen.ids.video.capture.release()
 
 
 if __name__ == '__main__':
