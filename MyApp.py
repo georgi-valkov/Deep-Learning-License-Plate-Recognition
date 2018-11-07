@@ -8,6 +8,8 @@ from kivy.graphics import Rectangle
 from kivy.graphics import Color
 from kivy.core.window import Window
 
+from kivy.properties import ObjectProperty
+
 import datetime
 import cv2
 
@@ -15,13 +17,14 @@ from Detector import Detector
 from Reader import Reader
 
 class KivyCapture(Image):
-    def __init__(self, capture, fps, **kwargs):
+    def __init__(self, **kwargs):
         super(KivyCapture, self).__init__(**kwargs)
-        self.capture = capture
-        self.fps = fps
+        self.capture = None
+        self.fps = 30
         self.parent = None
         self.detector = Detector(graph='models/lp_detection_graph.pb', labels='license_plate_label_map.pbtxt')
         self.reader = Reader(graph='models/text_reading_graph.pb')
+        self.running = ''
 
     def set_parent(self, parent):
         self.parent = parent
@@ -31,6 +34,11 @@ class KivyCapture(Image):
 
     def pause(self):
         Clock.unschedule(self.update)
+
+    # Clears the processed from the reader set and unschedule update
+    def stop(self):
+        Clock.unschedule(self.update)
+        self.reader.processed_set = set()
 
     def update(self, dt):
 
@@ -70,18 +78,13 @@ class KivyCapture(Image):
                                       coordinates='Latitude:\nLongitude')
                         self.parent.ids.data_grid.add_widget(record)
                         self.parent.ids.scroll.scroll_to(record)
+
             self.texture = image_texture
-
-
-class Video(Image):
-
-    pass
+            #self.parent.ids.video.texture = self.texture
 
 
 class MainScreen(BoxLayout):
-
-    capture = cv2.VideoCapture('/home/valkov/Desktop/Video/rob/done/20181024_163259.mp4') # Full Video Path
-    my_capture = KivyCapture(capture=capture, fps=30)
+    pass
 
 
 class Record(BoxLayout):
@@ -110,23 +113,43 @@ class MyApp(App):
     main_screen = None
     grid = None
 
+
     def build(self):
-        self.title = 'Lice Plate Detection'
+        self.title = 'License Plate Detection'
         self.main_screen = MainScreen()
 
         return self.main_screen
 
     def on_press_start(self):
-        self.main_screen.my_capture.set_parent(self.main_screen)
-        self.main_screen.my_capture.start()
+        video = self.main_screen.ids.video
+        if video.parent is not self.main_screen:
+            video.set_parent(self.main_screen)
+        if video.running is '': # First time
+            video.capture = cv2.VideoCapture('/home/valkov/Desktop/Video/rob/done/20181024_163259.mp4')
+            video.start()
+            video.running = 'running'
+        else:
+            video.start()
         self.main_screen.ids.start_button.disabled = True
         self.main_screen.ids.pause_button.disabled = False
 
     def on_press_pause(self):
-        self.main_screen.my_capture.pause()
+        video = self.main_screen.ids.video
+        video.pause()
+        video.running = 'paused'
         self.main_screen.ids.start_button.disabled = False
         self.main_screen.ids.pause_button.disabled = True
 
+    def on_press_stop(self):
+        self.main_screen.ids.video.stop()
+        self.main_screen.ids.video.capture.release()
+        self.main_screen.ids.video.running = ''
+        self.main_screen.ids.video.texture = Texture.create(size=(1920, 1080), colorfmt='bgr')
+        self.main_screen.ids.data_grid.clear_widgets()
+
+
+        self.main_screen.ids.start_button.disabled = False
+        self.main_screen.ids.pause_button.disabled = True
 
     def on_stop(self):
         #without this, app will not exit even if the window is closed

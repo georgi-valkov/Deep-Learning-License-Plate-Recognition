@@ -14,9 +14,6 @@
     rows: 3
     size_hint_x: 1.5
 
-<Video@Image>:
-    size_hint_y: 0.75
-
 <SettingsBar@StackLayout>:
     size_hint_y: 0.05
     spacing: 5
@@ -87,9 +84,10 @@
 
         # Left side of the app
         LeftSide:
-            Video:
+            KivyCapture:
                 id: video
-                texture: root.my_capture.texture
+                size_hint_y: 0.75
+                #texture: root.my_capture.texture
             SettingsBar:
                 SettingsButton:
                     ImageSettingsButtons:
@@ -112,7 +110,9 @@
                     text: 'Start'
                     on_press: app.on_press_start()
                 MainButton:
-                    text: 'Button 2'
+                    id: stop_button
+                    text: 'Stop'
+                    on_press: app.on_press_stop()
                 MainButton:
                     id: pause_button
                     text: 'Pause'
