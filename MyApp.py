@@ -45,7 +45,7 @@ class KivyCapture(Image):
         ret, frame = self.capture.read()
         if ret:
             # Object Detection
-            frame, scores, num_detections, boxes = self.detector.detect(frame)
+            frame, scores, num_detections, boxes = self.detector.detect(frame, resizing_factor=4)
             # convert it to texture
             buf1 = cv2.flip(frame, 0)
             buf = buf1.tostring()
