@@ -76,7 +76,7 @@ class KivyCapture(Image):
                         record.update(image_texture=lp_image_texture, predicted_text=prediction,
                                       time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                       coordinates='Latitude:\nLongitude')
-                        self.parent.ids.data_grid.add_widget(record)
+                        self.parent.ids.data_grid.add_widget(record, len(self.parent.ids.data_grid.children))
                         self.parent.ids.scroll.scroll_to(record)
 
             self.texture = image_texture
