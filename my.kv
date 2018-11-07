@@ -44,7 +44,7 @@
             pos: self.parent.x + self.margin, self.y + self.margin + 1
             size: self.parent.width - 2 * self.margin , self.thickness
 
-<Record@BoxLayout>:
+<Record@GridLayout>:
     #spacing: 5
     orientation: 'horizontal'
     CheckBox:
@@ -53,7 +53,11 @@
         on_active: self.parent.if_active()
     Image:
         id: lp_image
-        size: (150, 350)
+        allow_stretch: True
+        keep_ratio: True
+        size_hint_x: None
+        size_hint_y: None
+        width: 130
     Label:
         id: predicted_text
     Label:

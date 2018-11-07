@@ -76,7 +76,7 @@ class KivyCapture(Image):
                         record.update(image_texture=lp_image_texture, predicted_text=prediction,
                                       time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                       coordinates='Latitude:\nLongitude')
-                        self.parent.ids.data_grid.add_widget(record)
+                        self.parent.ids.data_grid.add_widget(record, len(self.parent.ids.data_grid.children))
                         self.parent.ids.scroll.scroll_to(record)
 
             self.texture = image_texture
@@ -125,7 +125,7 @@ class MyApp(App):
         if video.parent is not self.main_screen:
             video.set_parent(self.main_screen)
         if video.running is '': # First time
-            video.capture = cv2.VideoCapture('/home/valkov/Desktop/Video/rob/done/20181024_163259.mp4')
+            video.capture = cv2.VideoCapture('c:/vids/GOPR0396.MP4')
             video.start()
             video.running = 'running'
         else:
