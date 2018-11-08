@@ -53,11 +53,11 @@ class KivyCapture(Image):
                 size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
 
+            for i in range(int(num_detections[0])):
             # Extracting license plates and read them
-            if scores[0][0] > 0.995:
-                height, width, channels = frame.shape
-                # For All detected objects in the picture
-                for i in range(int(num_detections[0])):
+                if scores[0][i] > 0.90:
+                    height, width, channels = frame.shape
+                    # For All detected objects in the picture
                     # Bounding box coordinates
                     ymin = int((boxes[0][i][0] * height))
                     xmin = int((boxes[0][i][1] * width))
@@ -125,7 +125,7 @@ class MyApp(App):
         if video.parent is not self.main_screen:
             video.set_parent(self.main_screen)
         if video.running is '': # First time
-            video.capture = cv2.VideoCapture('c:/vids/GOPR0396.MP4')
+            video.capture = cv2.VideoCapture('/home/valkov/Desktop/Video/rob/done/20181024_163259.mp4')
             video.start()
             video.running = 'running'
         else:
