@@ -9,6 +9,7 @@ from kivy.graphics import Color
 from kivy.core.window import Window
 
 from kivy.properties import ObjectProperty
+import copy
 
 import datetime
 import cv2
@@ -44,6 +45,8 @@ class KivyCapture(Image):
 
         ret, frame = self.capture.read()
         if ret:
+            # Creates a copy of the original not edited frame
+            clear_frame = copy.deepcopy(frame) # For extracting license plates with no bounding box lines
             # Object Detection
             frame, scores, num_detections, boxes = self.detector.detect(frame, resizing_factor=4)
             # convert it to texture
@@ -63,7 +66,7 @@ class KivyCapture(Image):
                     xmin = int((boxes[0][i][1] * width))
                     ymax = int((boxes[0][i][2] * height))
                     xmax = int((boxes[0][i][3] * width))
-                    lp_np = frame[ymin:ymax, xmin:xmax]
+                    lp_np = clear_frame[ymin:ymax, xmin:xmax]
                     # Read text from license plate image
                     prediction, probability = self.reader.read(lp_np)
                     if probability > 0.95 and not self.reader.processed(prediction):
