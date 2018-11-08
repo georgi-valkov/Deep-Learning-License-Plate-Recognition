@@ -9,6 +9,7 @@ from kivy.graphics import Color
 from kivy.core.window import Window
 
 from kivy.properties import ObjectProperty
+import copy
 
 import datetime
 import cv2
@@ -44,6 +45,8 @@ class KivyCapture(Image):
 
         ret, frame = self.capture.read()
         if ret:
+            # Creates a copy of the original not edited frame
+            clear_frame = copy.deepcopy(frame) # For extracting license plates with no bounding box lines
             # Object Detection
             frame, scores, num_detections, boxes = self.detector.detect(frame, resizing_factor=4)
             # convert it to texture
@@ -53,17 +56,17 @@ class KivyCapture(Image):
                 size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
 
+            for i in range(int(num_detections[0])):
             # Extracting license plates and read them
-            if scores[0][0] > 0.995:
-                height, width, channels = frame.shape
-                # For All detected objects in the picture
-                for i in range(int(num_detections[0])):
+                if scores[0][i] > 0.90:
+                    height, width, channels = frame.shape
+                    # For All detected objects in the picture
                     # Bounding box coordinates
                     ymin = int((boxes[0][i][0] * height))
                     xmin = int((boxes[0][i][1] * width))
                     ymax = int((boxes[0][i][2] * height))
                     xmax = int((boxes[0][i][3] * width))
-                    lp_np = frame[ymin:ymax, xmin:xmax]
+                    lp_np = clear_frame[ymin:ymax, xmin:xmax]
                     # Read text from license plate image
                     prediction, probability = self.reader.read(lp_np)
                     if probability > 0.95 and not self.reader.processed(prediction):
@@ -125,7 +128,7 @@ class MyApp(App):
         if video.parent is not self.main_screen:
             video.set_parent(self.main_screen)
         if video.running is '': # First time
-            video.capture = cv2.VideoCapture('c:/vids/GOPR0396.MP4')
+            video.capture = cv2.VideoCapture('/home/valkov/Desktop/Video/rob/done/20181024_163259.mp4')
             video.start()
             video.running = 'running'
         else:
@@ -153,7 +156,7 @@ class MyApp(App):
 
     def on_stop(self):
         #without this, app will not exit even if the window is closed
-        self.main_screen.capture.release()
+        self.main_screen.ids.video.capture.release()
 
 
 if __name__ == '__main__':
