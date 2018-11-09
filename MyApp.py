@@ -26,6 +26,7 @@ class KivyCapture(Image):
         self.detector = Detector(graph='models/lp_detection_graph.pb', labels='license_plate_label_map.pbtxt')
         self.reader = Reader(graph='models/text_reading_graph.pb')
         self.running = ''
+        self.reader.read(cv2.imread('icons/s.jpeg', 0))
 
     def set_parent(self, parent):
         self.parent = parent
