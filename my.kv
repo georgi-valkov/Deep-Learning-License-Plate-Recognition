@@ -1,50 +1,14 @@
 #:kivy 1.10.1
-
-
-<SButton>:
-    #background_normal: 'bu.png'
-
-
-<LeftSide@GridLayout>:
-    cols: 1
-    rows: 3
-
-<RightSide@GridLayout>:
-    cols: 1
-    rows: 3
-    size_hint_x: 1.5
-
-<SettingsBar@StackLayout>:
-    size_hint_y: 0.05
-    spacing: 5
-    padding: [350, 0, 250, 0]
-
-
 <SettingsButton@Button>:
     size_hint: (None, None)
     width: 30
     height: 30
-
 <ImageSettingsButtons@Image>:
     size: self.parent.size
     pos: self.parent.pos
 
-<MainButton@Button>:
-
-<SeparatorH@Widget>:
-    size_hint_y: None
-    thickness: 2
-    margin: 2
-    height: self.thickness + 2 * self.margin
-    color: 1., .0, .0
-    canvas:
-        Color:
-            rgb: self.color
-        Rectangle:
-            pos: self.parent.x + self.margin, self.y + self.margin + 1
-            size: self.parent.width - 2 * self.margin , self.thickness
-
-<Record@GridLayout>:
+<Record>:
+    id: record
     #spacing: 5
     orientation: 'horizontal'
     CheckBox:
@@ -66,33 +30,31 @@
         id: coordinates
 
 
-<DataGrid@GridLayout>:
-    cols: 1
-    spacing: 5
-    row_default_height: '150dp'
-    #row_force_default: True
-    size_hint_y: None
-    height: self.minimum_height
-
 <MainScreen>:
-# Changes background color
-    canvas:
-        Color:
-            rgba: 0.5, 0.5, 0.5, 1
-        Rectangle:
-            size: self.size
-            pos: self.pos
+    # Main Layout
     BoxLayout:
+        # Change background color of the main layout
+        canvas:
+            Color:
+                rgba: 0.5, 0.5, 0.5, 1
+            Rectangle:
+                size: self.size
+                pos: self.pos
         padding: [10, 10, 10, 10]
         spacing: 20
 
         # Left side of the app
-        LeftSide:
-            KivyCapture:
+        GridLayout:
+            cols: 1
+            rows: 3
+            KivyCapture:  # KivY Capture widget goes here
                 id: video
-                size_hint_y: 0.75
-                #texture: root.my_capture.texture
-            SettingsBar:
+                size_hint_y: .75
+            StackLayout:    # Settings button container
+                size_hint_y: .05
+                spacing: 5
+                padding: [350, 0, 250, 0]
+                # Settings buttons
                 SettingsButton:
                     ImageSettingsButtons:
                         source: 'icons/set.png'
@@ -106,32 +68,32 @@
                     ImageSettingsButtons:
                         source: 'icons/cam.png'
             BoxLayout:
-                size_hint_y: 0.2
+                size_hint_y: .2
                 spacing: 20
                 padding: [20, 20, 20, 20]
-                MainButton:
+                Button:
                     id: start_button
                     text: 'Start'
                     on_press: app.on_press_start()
-                MainButton:
+                Button:
                     id: stop_button
                     text: 'Stop'
                     on_press: app.on_press_stop()
-                MainButton:
+                Button:
                     id: pause_button
                     text: 'Pause'
                     on_press: app.on_press_pause()
                     disabled: True
 
-
-
-
         # Right side of the app
-        RightSide:
+        GridLayout:
+            cols: 1
+            rows: 3
+            size_hint_x: 1.5
             BoxLayout:
-                size_hint_y: 0.05
-                padding: [0, 0, 0, 50]
                 orientation: 'horizontal'
+                size_hint_y: .05
+                padding: [0, 0, 0, 50]
                 Widget:
                 Label:
                     size_hint_y: 0.5
@@ -148,20 +110,78 @@
 
             ScrollView:
                 id: scroll
-                size_hint_y: 0.75
+                size_hint_y: .75
                 size: self.size
                 do_scroll_y: True
                 bar_width: 4
-                DataGrid:
+
+                GridLayout:
                     id: data_grid
+                    cols: 1
+                    spacing: 5
+                    row_default_height: '150dp'
+                    size_hint_y: None
+                    height: self.minimum_height
 
-
-            SButton:
-                size_hint_y: 0.2
+            Button:
+                size_hint_y: .2
                 text: 'Legend'
 
 
+<BootScreen>:
+    title: 'Boot Screen'
+    id: boot_screen
+    name: 'BootScreen'
+    on_enter: root.do_everything()
+    canvas.before:
+        Rectangle:
+            source: 'icons/bg.jpg'
+            size: self.size
+            pos: self.pos
+    FloatLayout:
+        Label:
+            id: booting_label
+            size_hint: None, None
+            text: root.boot_text
+            texture: self.texture
+            font_size: 150
+            center: self.parent.center
+            size: self.texture_size
+            pos: self.pos
+            opacity: .7
+            #canvas:
+             #   Color:
+             #       rgba: 0, 1, 0, 0.5
+              #  Rectangle:
+               #     size: self.size
+                #    pos: self.pos
+        ScrollView:
+            size_hint: None, None
+            height: self.parent.height / 10
+            width: self.parent.width / 3
+            background_color: 0, 0, 0, 0
+            bar_width: 0
+            scroll_y: 0
+            Label:
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: self.width, None
+                markup: True
+                text: root.init_text
+                padding_x: 5
+                opacity: .5
 
+        #TextInput:
+            #id: init_text
+            #text: root.init_text
+            #size_hint: None, None
+            #multiline: True
+            #height: self.parent.height / 5
+            #width: self.parent.width / 3
+            #background_color: 0, 0, 0, 0 # Uncomment for making background transparent
+            #foreground_color: 1,1,1,1
+            #readonly: True
+            #markup: True
 
-
-
+<SettingsScreen>:
+<VideoFeedSettingsScreen>:
