@@ -76,7 +76,10 @@ class BootScreen(Screen):
 
         time.sleep(1)
         self.ready = True
+        # Remove boot Text
         self.boot_text = ''
+        # Remove Progress bar
+        self.remove_widget(self.ids.progress_bar)
 
     def boot(self, *args):
         sm = Cache.get('cache', 'ScreenManager')
@@ -84,7 +87,10 @@ class BootScreen(Screen):
             self.boot_text = self.boot_text.replace('.....', '')
         if not self.ready:
             self.boot_text = self.boot_text + '.'
+            # Update progress bar
+            self.ids.progress_bar.value = self.ids.progress_bar.value + 60
         elif self.ready:
+            self.ids.progress_bar.value = 1000
             # Stop init thread
             self.init_thread_stop_event.set()
             # Unschedule further boot updates
