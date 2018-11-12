@@ -139,22 +139,31 @@
             size: self.size
             pos: self.pos
     FloatLayout:
-        Label:
-            id: booting_label
-            size_hint: None, None
-            text: root.boot_text
-            texture: self.texture
-            font_size: 150
-            center: self.parent.center
-            size: self.texture_size
-            pos: self.pos
-            opacity: .7
-            #canvas:
-             #   Color:
-             #       rgba: 0, 1, 0, 0.5
-              #  Rectangle:
-               #     size: self.size
-                #    pos: self.pos
+        RelativeLayout:
+            Label:
+                id: booting_label
+                size_hint: None, None
+                text: root.boot_text
+                texture: self.texture
+                font_size: 150
+                center: self.parent.center
+                size: self.texture_size
+                pos: self.pos
+                opacity: .7
+            ProgressBar:
+                id: progress_bar
+                max: 1000
+                size_hint: 1 / 1.5, None
+                #pos: self.pos
+                opacity: .5
+                center: self.parent.center
+                pos_hint: {'center_x': 0.5, 'center_y': 0.4}
+                #canvas:
+                #    Color:
+                #        rgba: 0, 1, 0, 0.5
+                #    Rectangle:
+                #        size: self.size
+                #        pos: self.pos
         ScrollView:
             size_hint: None, None
             height: self.parent.height / 10
