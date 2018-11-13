@@ -1,0 +1,53 @@
+[
+    {
+      "type": "title",
+     "title": "Window Size"
+    },
+    {
+      "type": "numeric",
+     "title": "Height",
+     "desc": "Specify the height of the window",
+     "section": "appearance",
+     "key": "window_height"
+    },
+  {
+      "type": "numeric",
+     "title": "Width",
+     "desc": "Specify the width of the window",
+     "section": "appearance",
+     "key": "window_width"
+    },
+  {
+    "type": "title",
+    "title": "Video"
+  },
+  {
+      "type": "numeric",
+     "title": "Number of Frames",
+     "desc": "Specify the number of frames to be precessed for object detection",
+     "section": "video_settings",
+     "key": "frames"
+    },
+  {
+    "type": "title",
+    "title": "Detector"
+  },
+  {
+      "type": "numeric",
+     "title": "Detection Certainty Threshold",
+     "desc": "Specify the detection certainty threshold in % from 1-100",
+     "section": "detector",
+     "key": "detection_certainty"
+    },
+  {
+    "type": "title",
+    "title": "Reader"
+  },
+  {
+      "type": "numeric",
+     "title": "Reading Certainty Threshold",
+     "desc": "Specify the reading certainty threshold in % from 1-100",
+     "section": "reader",
+     "key": "reading_certainty"
+    }
+]

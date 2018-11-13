@@ -1,4 +1,4 @@
-from kivy.config import Config
+from kivy.config import Config, ConfigParser
 Config.set('graphics', 'resizable', '0')
 Config.set('graphics', 'top', '0')
 Config.set('graphics', 'left', '0')
@@ -6,19 +6,20 @@ Config.set('graphics', 'position', 'custom')
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.core.window import Window
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, NumericProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle, Color
 from kivy.cache import Cache
+from kivy.uix.settings import Settings
 from threading import Thread, Event
 import cv2
 import numpy
 import copy
 import datetime
-
+import os
 # Create a cache to store global variables and objects
 # So they can be used across different screens and other classes
 Cache.register('cache')
@@ -120,12 +121,14 @@ class KivyCapture(Image):
     def __init__(self, **kwargs):
         super(KivyCapture, self).__init__(**kwargs)
         self.capture = None
-        self.fps = 30
+        self.fps = int(App.get_running_app().config.get('video_settings', 'frames'))
         self.parent = None
         self.detector = None
         self.reader = None
         self.running = ''
         self.texture = Texture.create(size=(1920, 1080), colorfmt='bgr')
+        self.detection_certainty = int(App.get_running_app().config.get('detector', 'detection_certainty'))
+        self.reading_certainty = int(App.get_running_app().config.get('reader', 'reading_certainty'))
 
     # Calls update function with a clock
     def start(self):
@@ -159,7 +162,7 @@ class KivyCapture(Image):
 
             for i in range(int(num_detections[0])):
                 # Extracting license plates and read them
-                if scores[0][i] > 0.90:
+                if scores[0][i] > (self.detection_certainty / 100):
                     height, width, channels = frame.shape
                     # For All detected objects in the picture
                     # Bounding box coordinates
@@ -170,7 +173,7 @@ class KivyCapture(Image):
                     lp_np = clear_frame[ymin:ymax, xmin:xmax]
                     # Read text from license plate image
                     prediction, probability = self.reader.read(lp_np)
-                    if probability > 0.95 and not self.reader.processed(prediction):
+                    if probability > (self.reading_certainty / 100) and not self.reader.processed(prediction):
                         lp_buf1 = cv2.flip(lp_np, 0)
                         lp_buf = lp_buf1.tostring()
                         lp_image_texture = Texture.create(size=(lp_np.shape[1], lp_np.shape[0]), colorfmt='bgr')
@@ -202,26 +205,83 @@ class Record(BoxLayout):
             self.ids.lp_image.parent.canvas.remove(self.rec)
 
 
+class Settings(Settings):
+
+    # Close settings
+    def on_close(self):
+        # Get screen manager
+        sm = Cache.get('cache', 'ScreenManager')
+        # Switch to main screen
+        sm.current = 'MainScreen'
+
+    def on_config_change(self, config, section,
+                         key, value):
+        main_screen = Cache.get('cache', 'MainScreen')
+
+        if key == 'window_height':
+            Window.size = (int(config.get('appearance', 'window_width')), int(value))
+        elif key == 'window_width':
+            Window.size = (int(value), int(config.get('appearance', 'window_height')))
+        elif key == 'frames':
+            main_screen.ids.video.fps = int(value)
+        elif key == 'detection_certainty':
+            main_screen.ids.video.detection_certainty = int(value)
+        elif key == 'reading_certainty':
+            main_screen.ids.video.reading_certainty = int(value)
+        #print (config, section, key, value)
+
 class MyApp(App):
-
     main_screen = None
-
+    settings_screen = None
     def build(self):
+        self.settings_cls = Settings
+        self.use_kivy_settings = False
+
         # Create the screen manager
         tr = FadeTransition(duration=1.)
-        sm = ScreenManager(transition=tr)
+        self.sm = ScreenManager(transition=tr)
 
         screens = [BootScreen(name='BootScreen'), MainScreen(name='MainScreen'), SettingsScreen(name='SettingsScreen'),
                    VideoFeedSettingsScreen(name='VideoFeedSettingsScreen')]
         for screen in screens:
-            sm.add_widget(screen)
+            self.sm.add_widget(screen)
         # Append objects to the cache so they can be used across the classes
-        Cache.append('cache', 'ScreenManager', sm)
+        Cache.append('cache', 'ScreenManager', self.sm)
+        Cache.append('cache', 'BootScreen', screens[0])
         Cache.append('cache', 'MainScreen', screens[1])
+        Cache.append('cache', 'SettingsScreen', screens[2])
 
         self.main_screen = screens[1]
+        self.settings_screen = screens[2]
         self.title = 'License Plate Recognition'
-        return sm
+
+        # Window size comes from config file and it's the last set width height in settings
+        Window.size = (int(self.config.get('appearance', 'window_width')),
+                       int(self.config.get('appearance', 'window_height')))
+
+        return self.sm
+
+    # Build config
+    def build_config(self, config):
+        config.setdefaults('appearance', {
+            'window_height': 1080,
+            'window_width': 1920,
+        })
+        config.setdefaults('video_settings', {
+            'frames': 30
+        })
+        config.setdefaults('detector', {
+            'detection_certainty': 90,
+        })
+        config.setdefaults('reader', {
+            'reading_certainty': 95,
+        })
+
+    # Build settings from file
+    def build_settings(self, settings):
+        settings.add_json_panel('Settings',
+                                self.config,
+                                'settings.json')
 
     def on_press_start(self):
         video = self.main_screen.ids.video
@@ -258,5 +318,4 @@ class MyApp(App):
 
 
 if __name__=='__main__':
-    Window.size = (1920, 1080)
     MyApp().run()
