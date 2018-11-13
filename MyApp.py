@@ -1,5 +1,5 @@
 from kivy.config import Config, ConfigParser
-Config.set('graphics', 'resizable', '0')
+Config.set('graphics', 'resizable', '1')
 Config.set('graphics', 'top', '0')
 Config.set('graphics', 'left', '0')
 Config.set('graphics', 'position', 'custom')
@@ -218,11 +218,7 @@ class Settings(Settings):
                          key, value):
         main_screen = Cache.get('cache', 'MainScreen')
 
-        if key == 'window_height':
-            Window.size = (int(config.get('appearance', 'window_width')), int(value))
-        elif key == 'window_width':
-            Window.size = (int(value), int(config.get('appearance', 'window_height')))
-        elif key == 'frames':
+        if key == 'frames':
             main_screen.ids.video.fps = int(value)
         elif key == 'detection_certainty':
             main_screen.ids.video.detection_certainty = int(value)
@@ -276,6 +272,8 @@ class MyApp(App):
         config.setdefaults('reader', {
             'reading_certainty': 95,
         })
+        # Put config object into the cache so it can be used outside
+        Cache.append('cache', 'config', config)
 
     # Build settings from file
     def build_settings(self, settings):
@@ -312,6 +310,13 @@ class MyApp(App):
         self.main_screen.ids.pause_button.disabled = True
 
     def on_stop(self):
+        # Save current window size on close
+        width, height = Window.size
+        config = Cache.get('cache', 'config')
+        config.set('appearance', 'window_width', width)
+        config.set('appearance', 'window_height', height)
+        config.write()
+
         # without this, app will not exit even if the window is closed
         if self.main_screen.ids.video.capture is not None:
             self.main_screen.ids.video.capture.release()

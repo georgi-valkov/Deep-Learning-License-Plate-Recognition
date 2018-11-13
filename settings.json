@@ -1,22 +1,4 @@
 [
-    {
-      "type": "title",
-     "title": "Window Size"
-    },
-    {
-      "type": "numeric",
-     "title": "Height",
-     "desc": "Specify the height of the window",
-     "section": "appearance",
-     "key": "window_height"
-    },
-  {
-      "type": "numeric",
-     "title": "Width",
-     "desc": "Specify the width of the window",
-     "section": "appearance",
-     "key": "window_width"
-    },
   {
     "type": "title",
     "title": "Video"
