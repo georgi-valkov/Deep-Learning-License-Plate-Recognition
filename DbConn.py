@@ -1,4 +1,5 @@
 import sqlite3
+import os.path
 
 
 class DBConn:
@@ -24,4 +25,3 @@ class DBConn:
          cursor.execute('''SELECT make,model,permit,lot,valid FROM cars WHERE tag=?''',(input,))
          data = cursor.fetchone()
          return data
-
