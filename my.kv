@@ -146,11 +146,20 @@
                 size_hint: None, None
                 text: root.boot_text
                 texture: self.texture
-                font_size: 150
+                text_size: self.size
                 center: self.parent.center
                 size: self.texture_size
+                text_size: None, None
+                font_size: root.size[1] / 10
+                font_name: 'assets/FFF_Tusj.ttf'
                 pos: self.pos
                 opacity: .7
+                #canvas:
+                #    Color:
+                #        rgba: 0, 1, 0, 0.5
+                #    Rectangle:
+                #        size: self.size
+                #        pos: self.pos
             ProgressBar:
                 id: progress_bar
                 max: 1000
@@ -159,12 +168,7 @@
                 opacity: .5
                 center: self.parent.center
                 pos_hint: {'center_x': 0.5, 'center_y': 0.4}
-                #canvas:
-                #    Color:
-                #        rgba: 0, 1, 0, 0.5
-                #    Rectangle:
-                #        size: self.size
-                #        pos: self.pos
+
         ScrollView:
             size_hint: None, None
             height: self.parent.height / 10
