@@ -20,6 +20,7 @@ import numpy
 import copy
 import datetime
 import os
+import time
 # Create a cache to store global variables and objects
 # So they can be used across different screens and other classes
 Cache.register('cache')
@@ -129,6 +130,15 @@ class KivyCapture(Image):
         self.texture = Texture.create(size=(1920, 1080), colorfmt='bgr')
         self.detection_certainty = int(App.get_running_app().config.get('detector', 'detection_certainty'))
         self.reading_certainty = int(App.get_running_app().config.get('reader', 'reading_certainty'))
+        self.list = []
+
+    # Counts non overlapping chars in two strings
+    def non_overlap(self, string1, string2):
+        count = 0
+        for i in range(min(len(string1), len(string2))):
+            if string1[i] != string2[i]:
+                count = count + 1
+        return count
 
     # Calls update function with a clock
     def start(self):
@@ -173,19 +183,45 @@ class KivyCapture(Image):
                     lp_np = clear_frame[ymin:ymax, xmin:xmax]
                     # Read text from license plate image
                     prediction, probability = self.reader.read(lp_np)
-                    if probability > (self.reading_certainty / 100) and not self.reader.processed(prediction):
-                        lp_buf1 = cv2.flip(lp_np, 0)
-                        lp_buf = lp_buf1.tostring()
-                        lp_image_texture = Texture.create(size=(lp_np.shape[1], lp_np.shape[0]), colorfmt='bgr')
-                        lp_image_texture.blit_buffer(lp_buf, colorfmt='bgr', bufferfmt='ubyte')
-                        # display image from the texture
-                        record = Record()
-                        record.update(image_texture=lp_image_texture, predicted_text=prediction,
-                                      time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                      coordinates='Latitude:\nLongitude')
-                        main_screen.ids.data_grid.add_widget(record, len(main_screen.ids.data_grid.children))
-                        main_screen.ids.scroll.scroll_to(record)
+                    if probability > (self.reading_certainty / 100):
+
+                        if not self.list:
+                            self.list.append([prediction, probability, lp_np])
+                        else:
+                            element = self.list[len(self.list) - 1]
+                            # Probably same picture but different prediction
+                            if self.non_overlap(prediction, element[0]) <= 2:
+                                self.list.append([prediction, probability, lp_np])
+                            # Different picture get out prediction with highest probability
+                            else:
+                                probability = 0
+                                for p in self.list:
+                                    if p[1] > probability:
+                                        prediction = p[0]
+                                        probability = p[1]
+                                        lp_np = p[2]
+
+                                if not self.reader.processed(prediction):
+                                    lp_buf1 = cv2.flip(lp_np, 0)
+                                    lp_buf = lp_buf1.tostring()
+                                    lp_image_texture = Texture.create(size=(lp_np.shape[1], lp_np.shape[0]), colorfmt='bgr')
+                                    lp_image_texture.blit_buffer(lp_buf, colorfmt='bgr', bufferfmt='ubyte')
+
+                                    # display image from the texture
+                                    record = Record()
+                                    record.update(image_texture=lp_image_texture, predicted_text=prediction + '\n' + str(probability),
+                                                  time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                  coordinates='Latitude:\nLongitude')
+                                    main_screen.ids.data_grid.add_widget(record, len(main_screen.ids.data_grid.children))
+                                    main_screen.ids.scroll.scroll_to(record)
+
+                                    self.reader.processed_set.add(prediction)
+                                self.list = []
+
             self.texture = image_texture
+        # TODO: Decide if stop needs to be invoked after video ends
+        # else:
+        #     App.get_running_app().on_press_stop()
 
 
 class Record(BoxLayout):
@@ -284,7 +320,7 @@ class MyApp(App):
     def on_press_start(self):
         video = self.main_screen.ids.video
         if video.running is '': # First time
-            video.capture = cv2.VideoCapture('/home/valkov/Desktop/Video/rob/done/20181024_163259.mp4')
+            video.capture = cv2.VideoCapture('20181119_144837.mp4')
             video.start()
             video.running = 'running'
         else:
