@@ -3,6 +3,8 @@
     size_hint: (None, None)
     width: 30
     height: 30
+    pos: self.parent.pos
+    center: self.parent.center
 <ImageSettingsButtons@Image>:
     size: self.parent.size
     pos: self.parent.pos
@@ -11,35 +13,103 @@
     id: record
     #spacing: 5
     orientation: 'horizontal'
+    canvas.before:
+        Color:
+            rgba: .95, .79, .16, .3
+        Line:
+            width: 1
+            rounded_rectangle: self.x, self.y - 5, self.width, self.height + 10, 20, 20, 20, 20, 20
+            #points: self.x, self.y - 5, self.x + self.width, self.y - 5
+    canvas:
+        Color:
+            rgba: 0, 0, 0, .3
+        RoundedRectangle:
+            size: (self.size[0], self.size[1] + 10)
+            radius: [20,]
+            pos: (self.pos[0], self.pos[1] - 5)
+
     CheckBox:
         id: ch_box
+        group: 'record'
         size: (5, 5)
+        size_hint_x: .02
         on_active: self.parent.if_active()
+        color: [1, 1, 1, 4]
     Image:
         id: lp_image
         allow_stretch: True
-        keep_ratio: True
-        size_hint_x: None
-        size_hint_y: None
-        width: 130
+        keep_ratio: False
+        size_hint_x: .1
+        #size_hint_y: 1
+        size: self.texture_size
+        #canvas:
+        #    Color:
+        #        rgba: 0, 1, 0, 0.5
+        #    Rectangle:
+        #        size: self.size
+        #        pos: self.pos
     Label:
         id: predicted_text
+        size_hint_x: .1
+        size: self.texture_size
     Label:
         id: time
+        size_hint_x: .05
+        size: self.texture_size
     Label:
-        id: coordinates
+        id: make_model
+        size_hint_x: .1
+    Label:
+        id: parking_permit
+        size_hint_x: .1
+        markup: True
+    Label:
+        id: valid
+        size_hint_x: .05
+
+<TopLabel@Label>:
+    size_hint: .1, 1
+    markup: True
+    size: self.texture_size
+
+<NavButton@Button>:
+    # Nav button border
+    canvas:
+        Color:
+            rgba: (.95, .79, .16, .1) if self.disabled else (.95, .79, .16, .5)
+        Line:
+            width: .5
+            rectangle: self.x, self.y, self.width, self.height
+
+<MainButton@Button>:
+    background_color: 0, 0, 0, 0
+    color: 1, 1, 1, .8
+    canvas.before:
+        Color:
+            rgba: (0, 0, 0, .3) if self.state == 'down' or self.disabled else (.4, .4, .4, .8)
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [50,]
+    canvas:
+        Color:
+            rgba: (.95, .79, .16, .1) if self.disabled else (.95, .79, .16, .5)
+        Line:
+            width: .5
+            rounded_rectangle: self.x, self.y, self.width, self.height, 50, 50, 50, 50, 50
 
 
 <MainScreen>:
     # Main Layout
     BoxLayout:
         # Change background color of the main layout
-        canvas:
+        canvas.before:
             Color:
-                rgba: 0.5, 0.5, 0.5, 1
+                rgba: 0.5, 0.5, 0.5, 0.5
             Rectangle:
                 size: self.size
                 pos: self.pos
+                source: 'assets/a1.png'
         padding: [10, 10, 10, 10]
         spacing: 20
 
@@ -47,14 +117,43 @@
         GridLayout:
             cols: 1
             rows: 3
-            KivyCapture:  # KivY Capture widget goes here
-                id: video
-                size_hint_y: .75
-            StackLayout:    # Settings button container
-                size_hint_y: .05
+            spacing: 5
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: .8
+                padding: [30, 0, 0, 0]
+                Widget:
+                    size_hint_y: .1
+                BoxLayout:
+                    orientation: 'vertical'
+                    Widget:
+                        size_hint_y: .3
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .9
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/header_ksu-logo.png'
+                    KivyCapture:  # KivY Capture widget goes here
+                        id: video
+                        size: self.size
+                        pos: self.pos
+                        allow_stretch: True
+                        keep_ratio: False
+                        #canvas:
+                        #    Color:
+                        #        rgba: 0, 1, 1, 0.5
+                        #    Rectangle:
+                        #        size: self.size
+                        #        pos: self.pos
+            GridLayout:    # Settings button container
+                rows: 1
+                size_hint_y: None
+                height: self.minimum_height
                 spacing: 5
-                padding: [350, 0, 250, 0]
                 # Settings buttons
+                Widget:
                 SettingsButton:
                     on_press: app.open_settings()
                     ImageSettingsButtons:
@@ -68,46 +167,60 @@
                 SettingsButton:
                     ImageSettingsButtons:
                         source: 'icons/cam.png'
+                Widget:
             BoxLayout:
                 size_hint_y: .2
                 spacing: 20
-                padding: [20, 20, 20, 20]
-                Button:
+                padding: [40, 20, 20, 40]
+                MainButton:
                     id: start_button
                     text: 'Start'
                     on_press: app.on_press_start()
-                Button:
+                MainButton:
                     id: stop_button
                     text: 'Stop'
                     on_press: app.on_press_stop()
-                Button:
+                MainButton:
                     id: pause_button
                     text: 'Pause'
                     on_press: app.on_press_pause()
                     disabled: True
+
 
         # Right side of the app
         GridLayout:
             cols: 1
             rows: 3
             size_hint_x: 1.5
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: .05
-                padding: [0, 0, 0, 50]
+            GridLayout:
+                #orientation: 'horizontal'
+                rows: 1
+                size_hint_y: .08
+                padding: [0, 0, 40, 50]
+                #canvas:
+                #    Color:
+                #        rgba: 0, 1, 0, 0.5
+                #    Rectangle:
+                #       size: self.size
+                #       pos: self.pos
                 Widget:
-                Label:
-                    size_hint_y: 0.5
-                    text: 'License Plate Image'
-                Label:
-                    size_hint_y: 0.2
-                    text:'Predicted Text'
-                Label:
-                    size_hint_y: 0.1
-                    text: 'Time'
-                Label:
-                    size_hint_y: 0.2
-                    text: 'Coordinates'
+                    size_hint_x: .02
+                TopLabel:
+                    size_hint_x: .1
+                    text: '[b]License Plate Image[/b]'
+                TopLabel:
+                    text:'[b]Predicted Text[/b]'
+                TopLabel:
+                    size_hint_x: .05
+                    text: '[b]Time[/b]'
+                TopLabel:
+                    text: '[b]Make\nModel[/b]'
+                TopLabel:
+                    text: '[b]Parking Permit[/b]'
+                TopLabel:
+                    size_hint_x: .05
+                    text: '[b]Valid[/b]'
+
 
             ScrollView:
                 id: scroll
@@ -119,14 +232,123 @@
                 GridLayout:
                     id: data_grid
                     cols: 1
-                    spacing: 5
-                    row_default_height: '150dp'
+                    spacing: 20
+                    padding: [0, 5, 40, 0]
+                    row_default_height: '100dp'
                     size_hint_y: None
                     height: self.minimum_height
 
-            Button:
+            BoxLayout:
+                orientation: 'horizontal'
                 size_hint_y: .2
-                text: 'Legend'
+                padding: [0, 20, 40, 40]
+                # Student Info Area
+                BoxLayout:
+
+                    orientation: 'vertical'
+                    Label:
+                        opacity: .8
+                        text: 'Student Info'
+                        size_hint: None, .1
+                        #texture: self.texture
+                        size: self.texture_size
+                        text_size: None, None
+                        pos: self.pos
+                    Widget:
+                        size_hint: None, .1
+                    Label:
+                        id: name
+                        opacity: .5
+                        text: 'Name: '
+                        size_hint: None, .1
+                        #texture: self.texture
+                        size: self.texture_size
+                        text_size: None, None
+                        pos: self.pos
+                    Label:
+                        id: ksu_id
+                        opacity: .5
+                        text: 'KSU ID: '
+                        size_hint: None, .1
+                        #texture: self.texture
+                        size: self.texture_size
+                        text_size: None, None
+                        pos: self.pos
+                    Label
+                        id: tickets
+                        opacity: .5
+                        text: 'Tickets: '
+                        size_hint: None, .1
+                        #texture: self.texture
+                        size: self.texture_size
+                        text_size: None, None
+                        pos: self.pos
+
+                    #TextInput:
+                    #    canvas.before:
+                    #    background_color: 0, 0, 0, 0 # Uncomment for making background transparent
+                    #    foreground_color: 1,1,1,
+                    #    text: 'Legend'
+                Widget:
+                GridLayout:
+                    spacing: 20
+                    size_hint_x: .4
+                    cols: 3
+                    rows: 3
+                    Widget:
+                    NavButton:
+                        id: up
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/u.png'
+                    Widget:
+                    NavButton:
+                        id: left
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/l.png'
+
+                    Button:
+                        id: center
+                        background_color: (0, 0, 0, 0) if self.state == 'normal' else (1, 1, 1, 1)
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Ellipse:
+                                size: self.size
+                                pos: self.pos
+
+                    NavButton:
+                        id: right
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/r.png'
+                    Widget:
+                    NavButton:
+                        id: down
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/d.png'
+                    Widget:
+                Widget:
+                    size_hint_x: .1
+
 
 
 <BootScreen>:

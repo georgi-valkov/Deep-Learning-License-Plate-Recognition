@@ -193,6 +193,7 @@ class KivyCapture(Image):
                             if self.non_overlap(prediction, element[0]) <= 2:
                                 self.list.append([prediction, probability, lp_np])
                             # Different picture get out prediction with highest probability
+                            # TODO: Get out best prediction at the end of the video since there won't be any other to push it out (use frame count)
                             else:
                                 probability = 0
                                 for p in self.list:
@@ -206,12 +207,14 @@ class KivyCapture(Image):
                                     lp_buf = lp_buf1.tostring()
                                     lp_image_texture = Texture.create(size=(lp_np.shape[1], lp_np.shape[0]), colorfmt='bgr')
                                     lp_image_texture.blit_buffer(lp_buf, colorfmt='bgr', bufferfmt='ubyte')
-
+                                    # TODO: Query database to fill out make_model, parking_permit, valid
                                     # display image from the texture
                                     record = Record()
-                                    record.update(image_texture=lp_image_texture, predicted_text=prediction + '\n' + str(probability),
-                                                  time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                                  coordinates='Latitude:\nLongitude')
+                                    record.update(image_texture=lp_image_texture, predicted_text=prediction,
+                                                  time=datetime.datetime.now().strftime("%Y-%m-%d\n%H:%M:%S"),
+                                                  make_model='Ford\nTaurus',
+                                                  parking_permit='West\nW00013332',
+                                                  valid='Yes')
                                     main_screen.ids.data_grid.add_widget(record, len(main_screen.ids.data_grid.children))
                                     main_screen.ids.scroll.scroll_to(record)
 
@@ -225,11 +228,13 @@ class KivyCapture(Image):
 
 
 class Record(BoxLayout):
-    def update(self, image_texture, predicted_text, time, coordinates):
+    def update(self, image_texture, predicted_text, time, make_model, parking_permit, valid):
         self.ids.lp_image.texture = image_texture
         self.ids.predicted_text.text = predicted_text
         self.ids.time.text = time
-        self.ids.coordinates.text = coordinates
+        self.ids.make_model.text = make_model
+        self.ids.parking_permit.text = parking_permit
+        self.ids.valid.text = valid
 
     def if_active(self):
         rec = None
@@ -239,7 +244,7 @@ class Record(BoxLayout):
                 self.rec  = Rectangle(pos=self.ids.lp_image.parent.pos, size=self.ids.lp_image.parent.size)
         if not self.ids.ch_box.active:
             self.ids.lp_image.parent.canvas.remove(self.rec)
-
+    # TODO: Make a function that wraps a text in a color
 
 class Settings(Settings):
 
@@ -336,14 +341,15 @@ class MyApp(App):
         self.main_screen.ids.pause_button.disabled = True
 
     def on_press_stop(self):
-        self.main_screen.ids.video.stop()
-        self.main_screen.ids.video.capture.release()
-        self.main_screen.ids.video.running = ''
-        self.main_screen.ids.video.texture = Texture.create(size=(1920, 1080), colorfmt='bgr')
-        self.main_screen.ids.data_grid.clear_widgets()
+        if self.main_screen.ids.video.capture is not None:
+            self.main_screen.ids.video.stop()
+            self.main_screen.ids.video.capture.release()
+            self.main_screen.ids.video.running = ''
+            self.main_screen.ids.video.texture = Texture.create(size=(1920, 1080), colorfmt='bgr')
+            self.main_screen.ids.data_grid.clear_widgets()
 
-        self.main_screen.ids.start_button.disabled = False
-        self.main_screen.ids.pause_button.disabled = True
+            self.main_screen.ids.start_button.disabled = False
+            self.main_screen.ids.pause_button.disabled = True
 
     def on_stop(self):
         # Save current window size on close
