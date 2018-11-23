@@ -11,7 +11,7 @@ from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.graphics.texture import Texture
-from kivy.graphics import Rectangle, Color
+from kivy.graphics import Rectangle, RoundedRectangle, Color
 from kivy.cache import Cache
 from kivy.uix.settings import Settings
 from threading import Thread, Event
@@ -241,7 +241,9 @@ class Record(BoxLayout):
         if self.ids.ch_box.active:
             with self.ids.lp_image.parent.canvas:
                 Color(1, 1, 1, 0.5)
-                self.rec  = Rectangle(pos=self.ids.lp_image.parent.pos, size=self.ids.lp_image.parent.size)
+                self.rec = RoundedRectangle(pos=(self.ids.lp_image.parent.pos[0], self.ids.lp_image.parent.pos[1] - 5),
+                                            size=(self.ids.lp_image.parent.size[0], self.ids.lp_image.parent.size[1] + 10),
+                                            radius=[20,])
         if not self.ids.ch_box.active:
             self.ids.lp_image.parent.canvas.remove(self.rec)
     # TODO: Make a function that wraps a text in a color
