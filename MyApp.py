@@ -9,6 +9,7 @@ from kivy.core.window import Window
 from kivy.properties import StringProperty, NumericProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle, RoundedRectangle, Color
@@ -216,7 +217,7 @@ class KivyCapture(Image):
                                                   parking_permit='West\nW00013332',
                                                   valid='Yes')
                                     main_screen.ids.data_grid.add_widget(record, len(main_screen.ids.data_grid.children))
-                                    main_screen.ids.scroll.scroll_to(record)
+
 
                                     self.reader.processed_set.add(prediction)
                                 self.list = []
@@ -228,6 +229,7 @@ class KivyCapture(Image):
 
 
 class Record(BoxLayout):
+    rec = None
     def update(self, image_texture, predicted_text, time, make_model, parking_permit, valid):
         self.ids.lp_image.texture = image_texture
         self.ids.predicted_text.text = predicted_text
@@ -237,16 +239,53 @@ class Record(BoxLayout):
         self.ids.valid.text = valid
 
     def if_active(self):
-        rec = None
         if self.ids.ch_box.active:
-            with self.ids.lp_image.parent.canvas:
+            with self.canvas:
                 Color(1, 1, 1, 0.5)
-                self.rec = RoundedRectangle(pos=(self.ids.lp_image.parent.pos[0], self.ids.lp_image.parent.pos[1] - 5),
-                                            size=(self.ids.lp_image.parent.size[0], self.ids.lp_image.parent.size[1] + 10),
+                self.rec = RoundedRectangle(pos=(self.pos[0], self.pos[1] - 5),
+                                            size=(self.size[0], self.size[1] + 10),
                                             radius=[20,])
         if not self.ids.ch_box.active:
-            self.ids.lp_image.parent.canvas.remove(self.rec)
+            self.canvas.remove(self.rec)
+
     # TODO: Make a function that wraps a text in a color
+
+class DataGrid(GridLayout):
+    def move_up(self):
+        # Check if a record is selected
+        # get the index of the selected record
+        index = None
+        for i in range(len(self.children)):
+            if self.children[i].ids.ch_box.active:
+                index = i
+        if index is None:
+            self.children[0].ids.ch_box.active = True
+            self.parent.scroll_to(self.children[0])
+        elif 0 <= index < (len(self.children) - 1):
+            self.children[index].ids.ch_box.active = False
+            self.children[index + 1].ids.ch_box.active = True
+            self.parent.scroll_to(self.children[index + 1])
+
+    def move_down(self):
+        # Check if a record is selected
+        # get the index of the selected record
+        index = None
+        for i in range(len(self.children)):
+            if self.children[i].ids.ch_box.active:
+                index = i
+        if index is None:
+            self.children[len(self.children) - 1].ids.ch_box.active = True
+            self.parent.scroll_to(self.children[len(self.children) - 1])
+        elif 0 < index:
+            self.children[index].ids.ch_box.active = False
+            self.children[index - 1].ids.ch_box.active = True
+            self.parent.scroll_to(self.children[index - 1])
+
+    def move_right(self):
+        pass
+
+    def move_left(self):
+        pass
 
 class Settings(Settings):
 

@@ -98,7 +98,7 @@
             width: .5
             rounded_rectangle: self.x, self.y, self.width, self.height, 50, 50, 50, 50, 50
 
-
+<DataGrid>:
 <MainScreen>:
     # Main Layout
     BoxLayout:
@@ -229,7 +229,7 @@
                 do_scroll_y: True
                 bar_width: 4
 
-                GridLayout:
+                DataGrid:
                     id: data_grid
                     cols: 1
                     spacing: 20
@@ -298,6 +298,8 @@
                     Widget:
                     NavButton:
                         id: up
+                        on_press: data_grid.move_up()
+                        disabled: True if len(data_grid.children) < 1 else False
                         canvas:
                             Color:
                                 rgba: 1, 1, 1, .5
@@ -338,6 +340,8 @@
                     Widget:
                     NavButton:
                         id: down
+                        on_press: data_grid.move_down()
+                        disabled: True if len(data_grid.children) < 1 else False
                         canvas:
                             Color:
                                 rgba: 1, 1, 1, .5
