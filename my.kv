@@ -48,24 +48,33 @@
         #    Rectangle:
         #        size: self.size
         #        pos: self.pos
-    Label:
+    EditableLabel:
         id: predicted_text
         size_hint_x: .1
         size: self.texture_size
-    Label:
+    EditableLabel:
         id: time
         size_hint_x: .05
         size: self.texture_size
-    Label:
+    EditableLabel:
         id: make_model
         size_hint_x: .1
-    Label:
+    EditableLabel:
         id: parking_permit
         size_hint_x: .1
         markup: True
-    Label:
+    EditableLabel:
         id: valid
         size_hint_x: .05
+
+<EditableLabel>:
+    canvas:
+        Color:
+            rgba: (0, 0, 0, .5) if self.selected and self.parent.ids.ch_box.active else (0, 0, 0, 0)
+        RoundedRectangle:
+            size: (self.size[0], self.size[1] + 10)
+            radius: [20,]
+            pos: (self.pos[0], self.pos[1] - 5)
 
 <TopLabel@Label>:
     size_hint: .1, 1
@@ -101,6 +110,7 @@
 <DataGrid>:
 <MainScreen>:
     # Main Layout
+    id: main_screen
     BoxLayout:
         # Change background color of the main layout
         canvas.before:
@@ -310,6 +320,8 @@
                     Widget:
                     NavButton:
                         id: left
+                        on_press: data_grid.selected_record.move_left()
+                        disabled: True if data_grid.selected_record is None else False
                         canvas:
                             Color:
                                 rgba: 1, 1, 1, .5
@@ -330,6 +342,9 @@
 
                     NavButton:
                         id: right
+                        on_press: data_grid.selected_record.move_right()
+                        disabled: True if data_grid.selected_record is None else False
+
                         canvas:
                             Color:
                                 rgba: 1, 1, 1, .5

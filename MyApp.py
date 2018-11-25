@@ -6,11 +6,12 @@ Config.set('graphics', 'position', 'custom')
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.core.window import Window
-from kivy.properties import StringProperty, NumericProperty
+from kivy.properties import StringProperty, NumericProperty, BooleanProperty, ObjectProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
+from kivy.uix.label import Label
 from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle, RoundedRectangle, Color
 from kivy.cache import Cache
@@ -230,6 +231,7 @@ class KivyCapture(Image):
 
 class Record(BoxLayout):
     rec = None
+
     def update(self, image_texture, predicted_text, time, make_model, parking_permit, valid):
         self.ids.lp_image.texture = image_texture
         self.ids.predicted_text.text = predicted_text
@@ -240,17 +242,51 @@ class Record(BoxLayout):
 
     def if_active(self):
         if self.ids.ch_box.active:
-            with self.canvas:
-                Color(1, 1, 1, 0.5)
+            self.parent.selected_record = self
+            with self.canvas.before:
+                Color(1, 1, 1, 0.7)
                 self.rec = RoundedRectangle(pos=(self.pos[0], self.pos[1] - 5),
                                             size=(self.size[0], self.size[1] + 10),
                                             radius=[20,])
         if not self.ids.ch_box.active:
-            self.canvas.remove(self.rec)
+            self.parent.selected_record = None
+            self.canvas.before.remove(self.rec)
 
+    # Move right on the record
+    def move_right(self):
+        # If record selected
+        if self.ids.ch_box.active:
+            index = None
+            for i in range(len(self.children)):
+                if isinstance(self.children[i], EditableLabel):
+                    if self.children[i].selected is True:
+                        index = i
+            if index is None:
+                self.children[len(self.children) - 3].selected = True
+            elif 0 <= index <= (len(self.children) - 3):
+                self.children[index].selected = False
+                self.children[index - 1].selected = True
+
+    # Move left on the record
+    def move_left(self):
+        # If record selected
+        if self.ids.ch_box.active:
+            index = None
+            for i in range(len(self.children)):
+                if isinstance(self.children[i], EditableLabel):
+                    if self.children[i].selected is True:
+                        index = i
+            if index is None:
+                self.children[0].selected = True
+            elif 0 <= index <= (len(self.children) - 3):
+                self.children[index].selected = False
+                self.children[index + 1].selected = True
     # TODO: Make a function that wraps a text in a color
 
+
 class DataGrid(GridLayout):
+    selected_record = ObjectProperty(None, allownone=True)
+
     def move_up(self):
         # Check if a record is selected
         # get the index of the selected record
@@ -281,11 +317,10 @@ class DataGrid(GridLayout):
             self.children[index - 1].ids.ch_box.active = True
             self.parent.scroll_to(self.children[index - 1])
 
-    def move_right(self):
-        pass
 
-    def move_left(self):
-        pass
+class EditableLabel(Label):
+    selected = BooleanProperty(False)
+
 
 class Settings(Settings):
 
@@ -391,6 +426,8 @@ class MyApp(App):
 
             self.main_screen.ids.start_button.disabled = False
             self.main_screen.ids.pause_button.disabled = True
+
+            self.main_screen.ids.data_grid.selected_record = None
 
     def on_stop(self):
         # Save current window size on close
