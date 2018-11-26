@@ -10,8 +10,10 @@ from kivy.properties import StringProperty, NumericProperty, BooleanProperty, Ob
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
 from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle, RoundedRectangle, Color
 from kivy.cache import Cache
@@ -66,11 +68,11 @@ class BootScreen(Screen):
 
         video = main_screen.ids.video
         self.update_init_text('\n', 'StartingDetector:')
-        video.detector = Detector(graph='models/lp_detection_graph.pb', labels='license_plate_label_map.pbtxt')
+        video.detector = Detector(graph='models/detector_v1_184763.pb', labels='license_plate_label_map.pbtxt')
         self.update_init_text(' ', colors[1] + 'Success [/color]')
 
         self.update_init_text('\n', 'Starting Reader:')
-        video.reader = Reader(graph='models/text_reading_graph.pb')
+        video.reader = Reader(graph='models/v6_2_128_ch_3_gru.pb')
         self.update_init_text(' ', colors[1] + 'Success [/color]')
 
         self.update_init_text('\n', 'Testing Reader:')
@@ -108,7 +110,27 @@ class BootScreen(Screen):
 
 
 class MainScreen(Screen):
-    pass
+    loadfile = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+
+    def dismiss_popup(self):
+        self._popup.dismiss()
+
+    def show_load(self):
+        content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
+        self._popup = Popup(title="Load video file", content=content,
+                            size_hint=(0.5, 0.5))
+        self._popup.open()
+
+    def load(self, path, filename):
+        self.ids.video.path = os.path.join(path, filename[0])
+
+        self.dismiss_popup()
+
+
+class LoadDialog(FloatLayout):
+    load = ObjectProperty(None)
+    cancel = ObjectProperty(None)
 
 
 class SettingsScreen(Screen):
@@ -124,6 +146,7 @@ class KivyCapture(Image):
     def __init__(self, **kwargs):
         super(KivyCapture, self).__init__(**kwargs)
         self.capture = None
+        self.capture_frame_count = None
         self.fps = int(App.get_running_app().config.get('video_settings', 'frames'))
         self.parent = None
         self.detector = None
@@ -133,6 +156,7 @@ class KivyCapture(Image):
         self.detection_certainty = int(App.get_running_app().config.get('detector', 'detection_certainty'))
         self.reading_certainty = int(App.get_running_app().config.get('reader', 'reading_certainty'))
         self.list = []
+        self.path = ''
 
     # Counts non overlapping chars in two strings
     def non_overlap(self, string1, string2):
@@ -401,7 +425,12 @@ class MyApp(App):
     def on_press_start(self):
         video = self.main_screen.ids.video
         if video.running is '': # First time
-            video.capture = cv2.VideoCapture('20181119_144837.mp4')
+            if self.main_screen.ids.video_toggle.state == 'down':
+                video.capture = cv2.VideoCapture(self.main_screen.ids.video.path)
+                # Get the total number of frames in the video
+                video.capture_frame_count = int(video.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+            elif self.main_screen.ids.cam_toggle.state == 'down':
+                video.capture = cv2.VideoCapture(0)
             video.start()
             video.running = 'running'
         else:
