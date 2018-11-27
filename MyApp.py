@@ -155,6 +155,7 @@ class KivyCapture(Image):
         self.texture = Texture.create(size=(1920, 1080), colorfmt='bgr')
         self.detection_certainty = int(App.get_running_app().config.get('detector', 'detection_certainty'))
         self.reading_certainty = int(App.get_running_app().config.get('reader', 'reading_certainty'))
+        self.max_sim = int(App.get_running_app().config.get('reader', 'max_similar_readings'))
         self.list = []
         self.path = ''
 
@@ -216,11 +217,10 @@ class KivyCapture(Image):
                         else:
                             element = self.list[len(self.list) - 1]
                             # Probably same picture but different prediction
-                            if self.non_overlap(prediction, element[0]) <= 2:
+                            if len(self.list) < self.max_sim and self.non_overlap(prediction, element[0]) <= 2:
                                 self.list.append([prediction, probability, lp_np])
                             # Different picture get out prediction with highest probability
-                            # TODO: Get out best prediction at the end of the video since there won't be any other to push it out (use frame count)
-                            else:
+                            elif len(self.list) >= self.max_sim or self.non_overlap(prediction, element[0]) > 2:
                                 probability = 0
                                 for p in self.list:
                                     if p[1] > probability:
@@ -412,6 +412,9 @@ class MyApp(App):
         })
         config.setdefaults('reader', {
             'reading_certainty': 95,
+        })
+        config.setdefaults('reader', {
+            'max_similar_readings': 10,
         })
         # Put config object into the cache so it can be used outside
         Cache.append('cache', 'config', config)

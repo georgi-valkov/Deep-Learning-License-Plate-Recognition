@@ -31,5 +31,12 @@
      "desc": "Specify the reading certainty threshold in % from 1-100",
      "section": "reader",
      "key": "reading_certainty"
+    },
+  {
+      "type": "numeric",
+     "title": "Maximum Similar Readings",
+     "desc": "Maximum Number of Similar reading after which the one with maximum certainty is displayed",
+     "section": "reader",
+     "key": "max_similar_readings"
     }
 ]
