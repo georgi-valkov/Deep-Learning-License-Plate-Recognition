@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import tensorflow as tf
+import difflib
 
 class Reader():
     def __init__(self, graph, **kwargs):
@@ -46,6 +47,8 @@ class Reader():
     # Cheks if number has been read and adds it to the set of processed if it wasn't
     def processed(self, lp_number):
         if lp_number in self.processed_set:
+            return True
+        elif len(difflib.get_close_matches(lp_number, self.processed_set)) > 0:
             return True
         else:
             self.processed_set.add(lp_number)

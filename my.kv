@@ -1,114 +1,220 @@
 #:kivy 1.10.1
-
-
-<SButton>:
-    #background_normal: 'bu.png'
-
-
-<LeftSide@GridLayout>:
-    cols: 1
-    rows: 3
-
-<RightSide@GridLayout>:
-    cols: 1
-    rows: 3
-    size_hint_x: 1.5
-
-<SettingsBar@StackLayout>:
-    size_hint_y: 0.05
-    spacing: 5
-    padding: [350, 0, 250, 0]
-
-
 <SettingsButton@Button>:
     size_hint: (None, None)
     width: 30
     height: 30
-
+    pos: self.parent.pos
+    center: self.parent.center
+    background_color: (0, 0, 0, 0) if self.state != 'down' else (1, 1, 1, 1)
+<ToggleButton@ToggleButton>:
+    size_hint: (None, None)
+    width: 30
+    height: 30
+    pos: self.parent.pos
+    center: self.parent.center
+    background_color: (0, 0, 0, 0) if self.state != 'down' else (1, 1, 1, 1)
 <ImageSettingsButtons@Image>:
     size: self.parent.size
     pos: self.parent.pos
 
-<MainButton@Button>:
-
-<SeparatorH@Widget>:
-    size_hint_y: None
-    thickness: 2
-    margin: 2
-    height: self.thickness + 2 * self.margin
-    color: 1., .0, .0
-    canvas:
-        Color:
-            rgb: self.color
-        Rectangle:
-            pos: self.parent.x + self.margin, self.y + self.margin + 1
-            size: self.parent.width - 2 * self.margin , self.thickness
-
-<Record@GridLayout>:
+<Record>:
+    id: record
     #spacing: 5
     orientation: 'horizontal'
+    canvas.before:
+        Color:
+            rgba: .95, .79, .16, .3
+        Line:
+            width: 1
+            rounded_rectangle: self.x, self.y - 5, self.width, self.height + 10, 20, 20, 20, 20, 20
+            #points: self.x, self.y - 5, self.x + self.width, self.y - 5
+    canvas:
+        Color:
+            rgba: 0, 0, 0, .3
+        RoundedRectangle:
+            size: (self.size[0], self.size[1] + 10)
+            radius: [20,]
+            pos: (self.pos[0], self.pos[1] - 5)
+
     CheckBox:
         id: ch_box
+        group: 'record'
         size: (5, 5)
+        size_hint_x: .02
         on_active: self.parent.if_active()
+        color: [1, 1, 1, 4]
     Image:
         id: lp_image
         allow_stretch: True
-        keep_ratio: True
-        size_hint_x: None
-        size_hint_y: None
-        width: 130
-    Label:
+        keep_ratio: False
+        size_hint_x: .1
+        #size_hint_y: 1
+        size: self.texture_size
+        #canvas:
+        #    Color:
+        #        rgba: 0, 1, 0, 0.5
+        #    Rectangle:
+        #        size: self.size
+        #        pos: self.pos
+    EditableLabel:
         id: predicted_text
-    Label:
+        size_hint_x: .1
+        size: self.texture_size
+    EditableLabel:
         id: time
-    Label:
-        id: coordinates
+        size_hint_x: .05
+        size: self.texture_size
+    EditableLabel:
+        id: make_model
+        size_hint_x: .1
+    EditableLabel:
+        id: parking_permit
+        size_hint_x: .1
+        markup: True
+    EditableLabel:
+        id: valid
+        size_hint_x: .05
 
-
-<DataGrid@GridLayout>:
-    cols: 1
-    spacing: 5
-    row_default_height: '150dp'
-    #row_force_default: True
-    size_hint_y: None
-    height: self.minimum_height
-
-<MainScreen>:
-# Changes background color
+<EditableLabel>:
     canvas:
         Color:
-            rgba: 0.5, 0.5, 0.5, 1
-        Rectangle:
+            rgba: (0, 0, 0, .5) if self.selected and self.parent.ids.ch_box.active else (0, 0, 0, 0)
+        RoundedRectangle:
+            size: (self.size[0], self.size[1] + 10)
+            radius: [20,]
+            pos: (self.pos[0], self.pos[1] - 5)
+
+<TopLabel@Label>:
+    size_hint: .1, 1
+    markup: True
+    size: self.texture_size
+
+<NavButton@Button>:
+    # Nav button border
+    canvas:
+        Color:
+            rgba: (.95, .79, .16, .1) if self.disabled else (.95, .79, .16, .5)
+        Line:
+            width: .5
+            rectangle: self.x, self.y, self.width, self.height
+
+<MainButton@Button>:
+    background_color: 0, 0, 0, 0
+    color: 1, 1, 1, .8
+    canvas.before:
+        Color:
+            rgba: (0, 0, 0, .3) if self.state == 'down' or self.disabled else (.4, .4, .4, .8)
+        RoundedRectangle:
             size: self.size
             pos: self.pos
+            radius: [50,]
+    canvas:
+        Color:
+            rgba: (.95, .79, .16, .1) if self.disabled else (.95, .79, .16, .5)
+        Line:
+            width: .5
+            rounded_rectangle: self.x, self.y, self.width, self.height, 50, 50, 50, 50, 50
+<LoadDialog>:
     BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserIconView:
+            id: filechooser
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Load"
+                on_release: root.load(filechooser.path, filechooser.selection)
+
+<DataGrid>:
+<MainScreen>:
+    # Main Layout
+    id: main_screen
+    BoxLayout:
+        # Change background color of the main layout
+        canvas.before:
+            Color:
+                rgba: 0.5, 0.5, 0.5, 0.5
+            Rectangle:
+                size: self.size
+                pos: self.pos
+                source: 'assets/a1.png'
         padding: [10, 10, 10, 10]
         spacing: 20
 
         # Left side of the app
-        LeftSide:
-            KivyCapture:
-                id: video
-                size_hint_y: 0.75
-                #texture: root.my_capture.texture
-            SettingsBar:
+        GridLayout:
+            cols: 1
+            rows: 3
+            spacing: 5
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: .8
+                padding: [30, 0, 0, 0]
+                Widget:
+                    size_hint_y: .1
+                BoxLayout:
+                    orientation: 'vertical'
+                    Widget:
+                        size_hint_y: .3
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .9
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/header_ksu-logo.png'
+                    KivyCapture:  # KivY Capture widget goes here
+                        id: video
+                        size: self.size
+                        pos: self.pos
+                        allow_stretch: True
+                        keep_ratio: False
+                        #canvas:
+                        #    Color:
+                        #        rgba: 0, 1, 1, 0.5
+                        #    Rectangle:
+                        #        size: self.size
+                        #        pos: self.pos
+            GridLayout:    # Settings button container
+                rows: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 5
+                # Settings buttons
+                Widget:
                 SettingsButton:
+                    on_press: app.open_settings()
                     ImageSettingsButtons:
                         source: 'icons/set.png'
                 SettingsButton:
                     ImageSettingsButtons:
                         source: 'icons/db.png'
-                SettingsButton:
+                ToggleButton:
+                    id: video_toggle
+                    group: 'vid_cam'
+                    state: 'normal'
+                    on_state: main_screen.show_load() if self.state == 'down' else 'normal'
                     ImageSettingsButtons:
                         source: 'icons/vid.png'
-                SettingsButton:
+                ToggleButton:
+                    id: cam_toggle
+                    group: 'vid_cam'
+                    state: 'down'
                     ImageSettingsButtons:
                         source: 'icons/cam.png'
+                Widget:
             BoxLayout:
-                size_hint_y: 0.2
+                size_hint_y: .2
                 spacing: 20
-                padding: [20, 20, 20, 20]
+                padding: [40, 20, 20, 40]
                 MainButton:
                     id: start_button
                     text: 'Start'
@@ -124,44 +230,246 @@
                     disabled: True
 
 
-
-
         # Right side of the app
-        RightSide:
-            BoxLayout:
-                size_hint_y: 0.05
-                padding: [0, 0, 0, 50]
-                orientation: 'horizontal'
+        GridLayout:
+            cols: 1
+            rows: 3
+            size_hint_x: 1.5
+            GridLayout:
+                #orientation: 'horizontal'
+                rows: 1
+                size_hint_y: .08
+                padding: [0, 0, 40, 50]
+                #canvas:
+                #    Color:
+                #        rgba: 0, 1, 0, 0.5
+                #    Rectangle:
+                #       size: self.size
+                #       pos: self.pos
                 Widget:
-                Label:
-                    size_hint_y: 0.5
-                    text: 'License Plate Image'
-                Label:
-                    size_hint_y: 0.2
-                    text:'Predicted Text'
-                Label:
-                    size_hint_y: 0.1
-                    text: 'Time'
-                Label:
-                    size_hint_y: 0.2
-                    text: 'Coordinates'
+                    size_hint_x: .02
+                TopLabel:
+                    size_hint_x: .1
+                    text: '[b]License Plate Image[/b]'
+                TopLabel:
+                    text:'[b]Predicted Text[/b]'
+                TopLabel:
+                    size_hint_x: .05
+                    text: '[b]Time[/b]'
+                TopLabel:
+                    text: '[b]Make\nModel[/b]'
+                TopLabel:
+                    text: '[b]Parking Permit[/b]'
+                TopLabel:
+                    size_hint_x: .05
+                    text: '[b]Valid[/b]'
+
 
             ScrollView:
                 id: scroll
-                size_hint_y: 0.75
+                size_hint_y: .75
                 size: self.size
                 do_scroll_y: True
                 bar_width: 4
+
                 DataGrid:
                     id: data_grid
+                    cols: 1
+                    spacing: 20
+                    padding: [0, 5, 40, 0]
+                    row_default_height: '100dp'
+                    size_hint_y: None
+                    height: self.minimum_height
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: .2
+                padding: [0, 20, 40, 40]
+                # Student Info Area
+                BoxLayout:
+
+                    orientation: 'vertical'
+                    Label:
+                        opacity: .8
+                        text: 'Student Info'
+                        size_hint: None, .1
+                        #texture: self.texture
+                        size: self.texture_size
+                        text_size: None, None
+                        pos: self.pos
+                    Widget:
+                        size_hint: None, .1
+                    Label:
+                        id: name
+                        opacity: .5
+                        text: 'Name: '
+                        size_hint: None, .1
+                        #texture: self.texture
+                        size: self.texture_size
+                        text_size: None, None
+                        pos: self.pos
+                    Label:
+                        id: ksu_id
+                        opacity: .5
+                        text: 'KSU ID: '
+                        size_hint: None, .1
+                        #texture: self.texture
+                        size: self.texture_size
+                        text_size: None, None
+                        pos: self.pos
+                    Label
+                        id: tickets
+                        opacity: .5
+                        text: 'Tickets: '
+                        size_hint: None, .1
+                        #texture: self.texture
+                        size: self.texture_size
+                        text_size: None, None
+                        pos: self.pos
+
+                    #TextInput:
+                    #    canvas.before:
+                    #    background_color: 0, 0, 0, 0 # Uncomment for making background transparent
+                    #    foreground_color: 1,1,1,
+                    #    text: 'Legend'
+                Widget:
+                GridLayout:
+                    spacing: 20
+                    size_hint_x: .4
+                    cols: 3
+                    rows: 3
+                    Widget:
+                    NavButton:
+                        id: up
+                        on_press: data_grid.move_up()
+                        disabled: True if len(data_grid.children) < 1 else False
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/u.png'
+                    Widget:
+                    NavButton:
+                        id: left
+                        on_press: data_grid.selected_record.move_left()
+                        disabled: True if data_grid.selected_record is None else False
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/l.png'
+
+                    Button:
+                        id: center
+                        background_color: (0, 0, 0, 0) if self.state == 'normal' else (1, 1, 1, 1)
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Ellipse:
+                                size: self.size
+                                pos: self.pos
+
+                    NavButton:
+                        id: right
+                        on_press: data_grid.selected_record.move_right()
+                        disabled: True if data_grid.selected_record is None else False
+
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/r.png'
+                    Widget:
+                    NavButton:
+                        id: down
+                        on_press: data_grid.move_down()
+                        disabled: True if len(data_grid.children) < 1 else False
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, .5
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                                source: 'assets/d.png'
+                    Widget:
+                Widget:
+                    size_hint_x: .1
 
 
-            SButton:
-                size_hint_y: 0.2
-                text: 'Legend'
 
+<BootScreen>:
+    title: 'Boot Screen'
+    id: boot_screen
+    name: 'BootScreen'
+    on_enter: root.do_everything()
+    canvas.before:
+        Rectangle:
+            source: 'icons/bg.jpg'
+            size: self.size
+            pos: self.pos
+    FloatLayout:
+        RelativeLayout:
+            Label:
+                id: booting_label
+                size_hint: None, None
+                text: root.boot_text
+                texture: self.texture
+                text_size: self.size
+                center: self.parent.center
+                size: self.texture_size
+                text_size: None, None
+                font_size: root.size[1] / 10
+                font_name: 'assets/FFF_Tusj.ttf'
+                pos: self.pos
+                opacity: .7
+                #canvas:
+                #    Color:
+                #        rgba: 0, 1, 0, 0.5
+                #    Rectangle:
+                #        size: self.size
+                #        pos: self.pos
+            ProgressBar:
+                id: progress_bar
+                max: 1000
+                size_hint: 1 / 1.5, None
+                #pos: self.pos
+                opacity: .5
+                center: self.parent.center
+                pos_hint: {'center_x': 0.5, 'center_y': 0.4}
 
+        ScrollView:
+            size_hint: None, None
+            height: self.parent.height / 10
+            width: self.parent.width / 3
+            background_color: 0, 0, 0, 0
+            bar_width: 0
+            scroll_y: 0
+            Label:
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: self.width, None
+                markup: True
+                text: root.init_text
+                padding_x: 5
+                opacity: .5
 
+        #TextInput:
+            #id: init_text
+            #text: root.init_text
+            #size_hint: None, None
+            #multiline: True
+            #height: self.parent.height / 5
+            #width: self.parent.width / 3
+            #background_color: 0, 0, 0, 0 # Uncomment for making background transparent
+            #foreground_color: 1,1,1,1
+            #readonly: True
+            #markup: True
 
-
-
+<SettingsScreen>:
+<VideoFeedSettingsScreen>:
