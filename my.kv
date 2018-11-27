@@ -114,24 +114,6 @@
         Line:
             width: .5
             rounded_rectangle: self.x, self.y, self.width, self.height, 50, 50, 50, 50, 50
-<LoadDialog>:
-    BoxLayout:
-        size: root.size
-        pos: root.pos
-        orientation: "vertical"
-        FileChooserIconView:
-            id: filechooser
-
-        BoxLayout:
-            size_hint_y: None
-            height: 30
-            Button:
-                text: "Cancel"
-                on_release: root.cancel()
-
-            Button:
-                text: "Load"
-                on_release: root.load(filechooser.path, filechooser.selection)
 
 <DataGrid>:
 <MainScreen>:
@@ -201,7 +183,6 @@
                     id: video_toggle
                     group: 'vid_cam'
                     state: 'normal'
-                    on_state: main_screen.show_load() if self.state == 'down' else 'normal'
                     ImageSettingsButtons:
                         source: 'icons/vid.png'
                 ToggleButton:

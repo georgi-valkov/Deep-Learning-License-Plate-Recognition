@@ -11,6 +11,13 @@
      "key": "frames"
     },
   {
+      "type": "path",
+     "title": "Video Path",
+     "desc": "Path to the video file",
+     "section": "video_settings",
+     "key": "video_path"
+    },
+  {
     "type": "title",
     "title": "Detector"
   },

@@ -111,27 +111,7 @@ class BootScreen(Screen):
 
 
 class MainScreen(Screen):
-    loadfile = ObjectProperty(None)
-    text_input = ObjectProperty(None)
-
-    def dismiss_popup(self):
-        self._popup.dismiss()
-
-    def show_load(self):
-        content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
-        self._popup = Popup(title="Load video file", content=content,
-                            size_hint=(0.5, 0.5))
-        self._popup.open()
-
-    def load(self, path, filename):
-        self.ids.video.path = os.path.join(path, filename[0])
-
-        self.dismiss_popup()
-
-
-class LoadDialog(FloatLayout):
-    load = ObjectProperty(None)
-    cancel = ObjectProperty(None)
+    pass
 
 
 class SettingsScreen(Screen):
@@ -158,7 +138,7 @@ class KivyCapture(Image):
         self.reading_certainty = int(App.get_running_app().config.get('reader', 'reading_certainty'))
         self.max_sim = int(App.get_running_app().config.get('reader', 'max_similar_readings'))
         self.list = []
-        self.path = ''
+        self.path = App.get_running_app().config.get('video_settings', 'video_path')
 
     # Counts non overlapping chars in two strings
     def non_overlap(self, string1, string2):
@@ -371,6 +351,8 @@ class Settings(Settings):
             main_screen.ids.video.reading_certainty = int(value)
         elif key == 'max_similar_readings':
             main_screen.ids.video.max_sim = int(value)
+        elif key == 'video_path':
+            main_screen.ids.video.path = value
         #print (config, section, key, value)
 
 class MyApp(App):
@@ -412,6 +394,9 @@ class MyApp(App):
         })
         config.setdefaults('video_settings', {
             'frames': 30
+        })
+        config.setdefaults('video_settings', {
+            'video_path': os.getcwd()
         })
         config.setdefaults('detector', {
             'detection_certainty': 90,
