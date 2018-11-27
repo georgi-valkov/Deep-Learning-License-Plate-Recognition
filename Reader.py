@@ -7,7 +7,7 @@ class Reader():
     def __init__(self, graph, **kwargs):
         super(Reader, self).__init__(**kwargs)
         self.graph = self.__load_graph(graph)
-        self.config = tf.ConfigProto(allow_soft_placement=True)
+        self.config = tf.ConfigProto(allow_soft_placement=True, intra_op_parallelism_threads=2)
         self.session = tf.Session(graph=self.graph, config=self.config)
         self.processed_set = set()
 

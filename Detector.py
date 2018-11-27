@@ -11,7 +11,7 @@ class Detector():
         super(Detector, self).__init__(**kwargs)
         self.graph = self.__load_graph(graph)
         self.category_index = label_map_util.create_category_index_from_labelmap(labels)
-        self.config = tf.ConfigProto(allow_soft_placement=True)
+        self.config = tf.ConfigProto(allow_soft_placement=True, intra_op_parallelism_threads=2)
         self.session = tf.Session(graph=self.graph, config=self.config)
 
 

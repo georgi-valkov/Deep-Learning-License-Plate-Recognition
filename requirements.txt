@@ -7,3 +7,4 @@ opencv-python>=3.4.3.18
 Cython==0.28.2
 Kivy-Garden>=0.1.4
 Kivy>=1.10.1
+async-gui>=0.1.1

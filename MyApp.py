@@ -19,6 +19,7 @@ from kivy.graphics import Rectangle, RoundedRectangle, Color
 from kivy.cache import Cache
 from kivy.uix.settings import Settings
 from threading import Thread, Event
+from async_gui.engine import Engine
 import cv2
 import numpy
 import copy
@@ -28,7 +29,7 @@ import time
 # Create a cache to store global variables and objects
 # So they can be used across different screens and other classes
 Cache.register('cache')
-
+engine = Engine()
 
 class BootScreen(Screen):
 
@@ -152,7 +153,7 @@ class KivyCapture(Image):
         self.detector = None
         self.reader = None
         self.running = ''
-        self.texture = Texture.create(size=(1920, 1080), colorfmt='bgr')
+        self.texture = Texture.create(size=(1920 / 2, 1080 / 2), colorfmt='bgr')
         self.detection_certainty = int(App.get_running_app().config.get('detector', 'detection_certainty'))
         self.reading_certainty = int(App.get_running_app().config.get('reader', 'reading_certainty'))
         self.max_sim = int(App.get_running_app().config.get('reader', 'max_similar_readings'))
@@ -180,6 +181,59 @@ class KivyCapture(Image):
         Clock.unschedule(self.update)
         self.reader.processed_set = set()
 
+    @engine.async
+    def read_display_plates(self, frame, scores, num_detections, boxes, clear_frame, main_screen):
+        for i in range(int(num_detections[0])):
+            # Extracting license plates and read them
+            if scores[0][i] > (self.detection_certainty / 100):
+                height, width, channels = frame.shape
+                # For All detected objects in the picture
+                # Bounding box coordinates
+                ymin = int((boxes[0][i][0] * height))
+                xmin = int((boxes[0][i][1] * width))
+                ymax = int((boxes[0][i][2] * height))
+                xmax = int((boxes[0][i][3] * width))
+                lp_np = clear_frame[ymin:ymax, xmin:xmax]
+                # Read text from license plate image
+                prediction, probability = self.reader.read(lp_np)
+                if probability > (self.reading_certainty / 100):
+
+                    if not self.list:
+                        self.list.append([prediction, probability, lp_np])
+                    else:
+                        element = self.list[len(self.list) - 1]
+                        # Probably same picture but different prediction
+                        if len(self.list) < self.max_sim and self.non_overlap(prediction, element[0]) <= 2:
+                            self.list.append([prediction, probability, lp_np])
+                        # Different picture get out prediction with highest probability
+                        elif len(self.list) >= self.max_sim or self.non_overlap(prediction, element[0]) > 2:
+                            probability = 0
+                            for p in self.list:
+                                if p[1] > probability:
+                                    prediction = p[0]
+                                    probability = p[1]
+                                    lp_np = p[2]
+
+                            if not self.reader.processed(prediction):
+                                lp_buf1 = cv2.flip(lp_np, 0)
+                                lp_buf = lp_buf1.tostring()
+                                lp_image_texture = Texture.create(size=(lp_np.shape[1], lp_np.shape[0]), colorfmt='bgr')
+                                lp_image_texture.blit_buffer(lp_buf, colorfmt='bgr', bufferfmt='ubyte')
+                                # TODO: Query database to fill out make_model, parking_permit, valid
+                                # display image from the texture
+                                record = Record()
+                                record.update(image_texture=lp_image_texture, predicted_text=prediction,
+                                              time=datetime.datetime.now().strftime("%Y-%m-%d\n%H:%M:%S"),
+                                              make_model='Ford\nTaurus',
+                                              parking_permit='West\nW00013332',
+                                              valid='Yes')
+                                main_screen.ids.data_grid.add_widget(record, len(main_screen.ids.data_grid.children))
+
+                                self.reader.processed_set.add(prediction)
+                            self.list = []
+
+
+
     # Before calling this method capture must be set to cv2.VideoCapture object by a button
     def update(self, dt):
         main_screen = Cache.get('cache', 'MainScreen')
@@ -196,58 +250,8 @@ class KivyCapture(Image):
             image_texture = Texture.create(
                 size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
-
-            for i in range(int(num_detections[0])):
-                # Extracting license plates and read them
-                if scores[0][i] > (self.detection_certainty / 100):
-                    height, width, channels = frame.shape
-                    # For All detected objects in the picture
-                    # Bounding box coordinates
-                    ymin = int((boxes[0][i][0] * height))
-                    xmin = int((boxes[0][i][1] * width))
-                    ymax = int((boxes[0][i][2] * height))
-                    xmax = int((boxes[0][i][3] * width))
-                    lp_np = clear_frame[ymin:ymax, xmin:xmax]
-                    # Read text from license plate image
-                    prediction, probability = self.reader.read(lp_np)
-                    if probability > (self.reading_certainty / 100):
-
-                        if not self.list:
-                            self.list.append([prediction, probability, lp_np])
-                        else:
-                            element = self.list[len(self.list) - 1]
-                            # Probably same picture but different prediction
-                            if len(self.list) < self.max_sim and self.non_overlap(prediction, element[0]) <= 2:
-                                self.list.append([prediction, probability, lp_np])
-                            # Different picture get out prediction with highest probability
-                            elif len(self.list) >= self.max_sim or self.non_overlap(prediction, element[0]) > 2:
-                                probability = 0
-                                for p in self.list:
-                                    if p[1] > probability:
-                                        prediction = p[0]
-                                        probability = p[1]
-                                        lp_np = p[2]
-
-                                if not self.reader.processed(prediction):
-                                    lp_buf1 = cv2.flip(lp_np, 0)
-                                    lp_buf = lp_buf1.tostring()
-                                    lp_image_texture = Texture.create(size=(lp_np.shape[1], lp_np.shape[0]), colorfmt='bgr')
-                                    lp_image_texture.blit_buffer(lp_buf, colorfmt='bgr', bufferfmt='ubyte')
-                                    # TODO: Query database to fill out make_model, parking_permit, valid
-                                    # display image from the texture
-                                    record = Record()
-                                    record.update(image_texture=lp_image_texture, predicted_text=prediction,
-                                                  time=datetime.datetime.now().strftime("%Y-%m-%d\n%H:%M:%S"),
-                                                  make_model='Ford\nTaurus',
-                                                  parking_permit='West\nW00013332',
-                                                  valid='Yes')
-                                    main_screen.ids.data_grid.add_widget(record, len(main_screen.ids.data_grid.children))
-
-
-                                    self.reader.processed_set.add(prediction)
-                                self.list = []
-
             self.texture = image_texture
+            self.read_display_plates(frame, scores, num_detections, boxes, clear_frame, main_screen)
         # TODO: Decide if stop needs to be invoked after video ends
         # else:
         #     App.get_running_app().on_press_stop()
@@ -365,6 +369,8 @@ class Settings(Settings):
             main_screen.ids.video.detection_certainty = int(value)
         elif key == 'reading_certainty':
             main_screen.ids.video.reading_certainty = int(value)
+        elif key == 'max_similar_readings':
+            main_screen.ids.video.max_sim = int(value)
         #print (config, section, key, value)
 
 class MyApp(App):
@@ -453,7 +459,7 @@ class MyApp(App):
             self.main_screen.ids.video.stop()
             self.main_screen.ids.video.capture.release()
             self.main_screen.ids.video.running = ''
-            self.main_screen.ids.video.texture = Texture.create(size=(1920, 1080), colorfmt='bgr')
+            self.main_screen.ids.video.texture = Texture.create(size=(1920 / 2, 1080 / 2), colorfmt='bgr')
             self.main_screen.ids.data_grid.clear_widgets()
 
             self.main_screen.ids.start_button.disabled = False
