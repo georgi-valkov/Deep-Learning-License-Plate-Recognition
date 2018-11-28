@@ -6,7 +6,7 @@ Config.set('graphics', 'position', 'custom')
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.core.window import Window
-from kivy.properties import StringProperty, NumericProperty, BooleanProperty, ObjectProperty
+from kivy.properties import StringProperty, NumericProperty, BooleanProperty, ObjectProperty, ListProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -26,6 +26,7 @@ import copy
 import datetime
 import os
 import time
+from DbConn import DBConn
 # Create a cache to store global variables and objects
 # So they can be used across different screens and other classes
 Cache.register('cache')
@@ -95,7 +96,7 @@ class BootScreen(Screen):
         if not self.ready:
             self.boot_text = self.boot_text + '.'
             # Update progress bar
-            self.ids.progress_bar.value = self.ids.progress_bar.value + 60
+            self.ids.progress_bar.value = self.ids.progress_bar.value + 40
         elif self.ready:
             self.ids.progress_bar.value = 1000
             # Stop init thread
@@ -139,6 +140,7 @@ class KivyCapture(Image):
         self.max_sim = int(App.get_running_app().config.get('reader', 'max_similar_readings'))
         self.list = []
         self.path = App.get_running_app().config.get('video_settings', 'video_path')
+        self.database = DBConn(App.get_running_app().config.get('database', 'database_path'))
 
     # Counts non overlapping chars in two strings
     def non_overlap(self, string1, string2):
@@ -200,13 +202,30 @@ class KivyCapture(Image):
                                 lp_image_texture = Texture.create(size=(lp_np.shape[1], lp_np.shape[0]), colorfmt='bgr')
                                 lp_image_texture.blit_buffer(lp_buf, colorfmt='bgr', bufferfmt='ubyte')
                                 # TODO: Query database to fill out make_model, parking_permit, valid
+
+                                data = self.database.select(prediction)
                                 # display image from the texture
                                 record = Record()
-                                record.update(image_texture=lp_image_texture, predicted_text=prediction,
-                                              time=datetime.datetime.now().strftime("%Y-%m-%d\n%H:%M:%S"),
-                                              make_model='Ford\nTaurus',
-                                              parking_permit='West\nW00013332',
-                                              valid='Yes')
+                                if data[1] == 0:
+                                    record.flag = [0, 0, 0, .3]
+                                elif data[1] == 1:
+                                    record.flag = [.95, .79, .16, .3]
+                                elif data[1] == 2:
+                                    record.flag = [1, 0, 0, .3]
+
+                                if data[0] is not None:
+
+                                    record.update(image_texture=lp_image_texture, predicted_text=prediction,
+                                                  time=datetime.datetime.now().strftime("%Y-%m-%d\n%H:%M:%S"),
+                                                  make_model=data[0][1]+ '\n' + data[0][2],
+                                                  parking_permit=data[0][4] + '\n' + data[0][3],
+                                                  valid='Yes' if data[0][5] == 1 else 'No')
+                                if data[0] is None:
+                                    record.update(image_texture=lp_image_texture, predicted_text=prediction,
+                                                  time=datetime.datetime.now().strftime("%Y-%m-%d\n%H:%M:%S"),
+                                                  make_model='',
+                                                  parking_permit='',
+                                                  valid='')
                                 main_screen.ids.data_grid.add_widget(record, len(main_screen.ids.data_grid.children))
 
                                 self.reader.processed_set.add(prediction)
@@ -239,6 +258,7 @@ class KivyCapture(Image):
 
 class Record(BoxLayout):
     rec = None
+    flag = ListProperty()
 
     def update(self, image_texture, predicted_text, time, make_model, parking_permit, valid):
         self.ids.lp_image.texture = image_texture
@@ -407,6 +427,9 @@ class MyApp(App):
         config.setdefaults('reader', {
             'max_similar_readings': 10,
         })
+        config.setdefaults('database', {
+            'database_path': os.path.join(os.getcwd(), 'platedb'),
+        })
         # Put config object into the cache so it can be used outside
         Cache.append('cache', 'config', config)
 
@@ -452,6 +475,8 @@ class MyApp(App):
 
             self.main_screen.ids.data_grid.selected_record = None
 
+            self.main_screen.ids.video.list = []
+
     def on_stop(self):
         # Save current window size on close
         width, height = Window.size
@@ -463,6 +488,7 @@ class MyApp(App):
         # without this, app will not exit even if the window is closed
         if self.main_screen.ids.video.capture is not None:
             self.main_screen.ids.video.capture.release()
+
 
 
 if __name__=='__main__':

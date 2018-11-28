@@ -1,6 +1,6 @@
 from DbConn import DBConn
 import csv
-conn = DBConn()
+conn = DBConn('platedb')
 #tag,make,model,permit,lot,valid
 with open('plates.csv') as csvfile:
     dr = csv.DictReader(csvfile)

@@ -45,5 +45,16 @@
      "desc": "Maximum Number of Similar reading after which the one with maximum certainty is displayed",
      "section": "reader",
      "key": "max_similar_readings"
+    },
+   {
+    "type": "title",
+    "title": "Database"
+  },
+  {
+      "type": "path",
+     "title": "Database Path",
+     "desc": "Path to the database file",
+     "section": "database",
+     "key": "database_path"
     }
 ]
