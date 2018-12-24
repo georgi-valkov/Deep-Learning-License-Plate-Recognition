@@ -3,7 +3,7 @@ Making use of Google’s TensorFlow framework to create a system that can detect
 camera feed. The core of the system consists of two models in the form of so called frozen graphs. Making them work together, we were able to achieve 
 a very good accuracy on detecting license plates as well as descent results on predicting the text written on them. Finally, the system
 can be set to check predicted text against a database and display the retrieved information.<br/>
-![alt Demo](https://lh3.googleusercontent.com/Gt20CxJGpHrx2bkDJt0lOfKxSfLzZ01L_EHVFzmvMx0jFUm58VOa35aQ6pN06ge6nJ3Sdyhxa9sLBIFpvbvDlvXRhmbjHQ6pfxzZgI2HJjAQQp5HQJhVayMgJoRf_qQDVpF7DlE-3Xmp2Fx6Kh9ieeRrlaF-TdhYjaMaOqm_x9cn_eHn93sYeQCdD9YAVxdxbj1YA0J5MeOaTom4fL1oCLDHyCtn-r9iV-XNyhgHiomozmT9AKgce-2ZlaJNl_H_oMzE5BfOy8MT7BEi3HyuYoWnAKAm3CKZRRrmkDdyLk8CFiyBuw2q1zC1cIKqLvSa3O_FgAOSYpRD3fC2JdX7aWsXkvOf6rZj9IU1N_2Apip7JtZqRxUK3r6bV_BOa5njdcMxmFBS-L3s37aCzE4W2Ee4dQ_vZ8cQj1XDBHxG0EntJdMeEJFfqwMhJRN2Zl_hveg4S6l7-aCBbS8WKo2696HaeSvRRKYlGrhUo1iB_AMKsLX0EZjQfu28QTMO02Xo54DecdYiCWny7k1lxeo4x2sUGxyFpLHIXwcMuoeyRZ9f1tZ19zR4gJ2xvLnO8EW7caE_2LOy_JsKrbscAp-vUMElAsG1o-kB1VfWQ_0hwY-lb1lQpp5G5p45lZxSCxQ4BHauCi_VWRvofuFjfjmSwXSh=w1916-h1037-no)
+![alt Demo](https://raw.githubusercontent.com/georgi-valkov/Deep-Learning-License-Plate-Recognition/master/assets/screenshot.png)
 ## Installation
 * Install Miniconda3 according to instruction for your OS which can be found 
 [here](https://conda.io/docs/user-guide/install/index.html).
